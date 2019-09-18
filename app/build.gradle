@@ -1,0 +1,43 @@
+apply plugin: 'com.android.application'
+
+android {
+    compileSdkVersion rootProject.ext.config["compileSdkVersion"]
+
+    defaultConfig {
+        applicationId "com.hellohuandian.apps.equipment"
+        minSdkVersion rootProject.ext.config["minSdkVersion"]
+        targetSdkVersion rootProject.ext.config["targetSdkVersion"]
+        versionCode 1
+        versionName "1.0"
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+
+
+        debug {
+        }
+    }
+
+    sourceSets {
+        main {
+            jniLibs.srcDirs = ['libs']
+        }
+    }
+}
+
+dependencies {
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+
+    implementation project(path: ':AppBaseLibrary')
+    implementation rootProject.ext.dependencies["constraintlayout"]
+
+    implementation project(path: ':TaskStrategyLibrary')
+}
