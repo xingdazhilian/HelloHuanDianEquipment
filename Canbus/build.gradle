@@ -8,6 +8,12 @@ android {
         targetSdkVersion rootProject.ext.config["targetSdkVersion"]
         versionCode 1
         versionName "1.0"
+
+//        ndk {
+//            moduleName "Canbus"
+//            abiFilters "armeabi-v7a"
+//        }
+
     }
 
     buildTypes {
@@ -17,12 +23,21 @@ android {
         }
     }
 
+    sourceSets {
+        main {
+            jniLibs.srcDirs = ['libs']
+        }
+    }
+
+//    externalNativeBuild {
+//        ndkBuild {
+//            path file('src/main/jni/Android.mk')
+//        }
+//    }
 }
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
-    implementation rootProject.ext.dependencies["appcompat-v7"]
 
-    implementation project(path: ':SerialPort')
-    implementation project(path: ':Canbus')
+    implementation rootProject.ext.dependencies["appcompat-v7"]
 }

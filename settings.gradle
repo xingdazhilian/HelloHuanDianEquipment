@@ -1,1 +1,1 @@
-include ':app', ':TaskStrategyLibrary', ':DeviceIoController','AppBaseLibrary','UtilLibrary','SerialPort'
+include ':app', ':TaskStrategyLibrary', ':DeviceIoController', ':Canbus','AppBaseLibrary','UtilLibrary','SerialPort'
