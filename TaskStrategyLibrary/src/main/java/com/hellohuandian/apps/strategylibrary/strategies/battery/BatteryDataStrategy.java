@@ -238,11 +238,13 @@ public class BatteryDataStrategy extends ProtocolStrategy
      */
     private void parseRelativeCapatityPercent(byte[] bytes)
     {
-        if (bytes.length > 18)
+        if (bytes.length > 17)
         {
-            int value = 0;
-            for (int i = 17, j = 0; i <= 18; value |= ((bytes[i] & 0xFF) << (j * 8)), i++, j++) ;
-            System.out.println("电池相对容量百分比：" + value + "%");
+            if (bytes.length > 17)
+            {
+                int value = bytes[19] & 0xFF;
+                System.out.println("电池相对容量百分比：" + value + "%");
+            }
         }
     }
 
@@ -253,11 +255,10 @@ public class BatteryDataStrategy extends ProtocolStrategy
      */
     private void parseAbsoluteCapatityPercent(byte[] bytes)
     {
-        if (bytes.length > 20)
+        if (bytes.length > 19)
         {
-            int value = 0;
-            for (int i = 19, j = 0; i <= 20; value |= ((bytes[i] & 0xFF) << (j * 8)), i++, j++) ;
-            System.out.println("电池绝对容量百分比：" + ((float) value / 100) + "%");
+            int value = bytes[19] & 0xFF;
+            System.out.println("电池绝对容量百分比：" + value + "%");
         }
     }
 
