@@ -20,6 +20,7 @@ public class BatteryDataStrategy extends ProtocolStrategy
     private final byte[] _16bytes = new byte[16];
     private final BatteryData batteryData = new BatteryData();
     private OnBatteryDataUpdate onBatteryDataUpdate;
+    private BatteryInfoTable batteryInfoTable;
 
     public BatteryDataStrategy(byte address)
     {
@@ -29,6 +30,11 @@ public class BatteryDataStrategy extends ProtocolStrategy
     public void setOnBatteryDataUpdate(OnBatteryDataUpdate onBatteryDataUpdate)
     {
         this.onBatteryDataUpdate = onBatteryDataUpdate;
+    }
+
+    public void setBatteryInfoTable(BatteryInfoTable batteryInfoTable)
+    {
+        this.batteryInfoTable = batteryInfoTable;
     }
 
     @Override
@@ -162,7 +168,7 @@ public class BatteryDataStrategy extends ProtocolStrategy
         if (bytes.length > 3)
         {
             byte doorLockStatus = bytes[3];
-            System.out.println("门锁状态：" + (doorLockStatus == 0 ? "关闭" : "打开"));
+            batteryData.setDoorLockStatus(doorLockStatus);
         }
     }
 
@@ -176,7 +182,7 @@ public class BatteryDataStrategy extends ProtocolStrategy
         if (bytes.length > 4)
         {
             byte electricMachineStatus = bytes[4];
-            System.out.println("电机状态：" + (electricMachineStatus == 0 ? "关闭" : "打开"));
+            batteryData.setElectricMachineStatus(electricMachineStatus);
         }
     }
 
@@ -193,7 +199,7 @@ public class BatteryDataStrategy extends ProtocolStrategy
             for (int i = 5, j = 0; i <= 8; value |= ((bytes[i] & 0xFF) << (j * 8)), i++, j++) ;
             value -= 2731;
             float temperature = (float) value / 10;
-            System.out.println("温度：" + temperature + "度");
+            batteryData.setBatteryTemperature(temperature);
         }
     }
 
@@ -208,7 +214,7 @@ public class BatteryDataStrategy extends ProtocolStrategy
         {
             int value = 0;
             for (int i = 9, j = 0; i <= 12; value |= ((bytes[i] & 0xFF) << (j * 8)), i++, j++) ;
-            System.out.println("电压：" + value + "mV");
+            batteryData.setBatteryTotalVoltage(value);
         }
     }
 
@@ -227,7 +233,7 @@ public class BatteryDataStrategy extends ProtocolStrategy
             {
                 value = (~value + 1);
             }
-            System.out.println("电流：" + value + "mA");
+            batteryData.setRealTimeCurrent(value);
         }
     }
 
@@ -240,11 +246,8 @@ public class BatteryDataStrategy extends ProtocolStrategy
     {
         if (bytes.length > 17)
         {
-            if (bytes.length > 17)
-            {
-                int value = bytes[19] & 0xFF;
-                System.out.println("电池相对容量百分比：" + value + "%");
-            }
+            int value = bytes[19] & 0xFF;
+            batteryData.setRelativeCapatityPercent(value);
         }
     }
 
@@ -258,7 +261,7 @@ public class BatteryDataStrategy extends ProtocolStrategy
         if (bytes.length > 19)
         {
             int value = bytes[19] & 0xFF;
-            System.out.println("电池绝对容量百分比：" + value + "%");
+            batteryData.setAbsoluteCapatityPercent(value);
         }
     }
 
@@ -273,7 +276,7 @@ public class BatteryDataStrategy extends ProtocolStrategy
         {
             int value = 0;
             for (int i = 21, j = 0; i <= 22; value |= ((bytes[i] & 0xFF) << (j * 8)), i++, j++) ;
-            System.out.println("电池剩余容量：" + value + "mAh");
+            batteryData.setRemainingCapatity(value);
         }
     }
 
@@ -288,7 +291,7 @@ public class BatteryDataStrategy extends ProtocolStrategy
         {
             int value = 0;
             for (int i = 23, j = 0; i <= 24; value |= ((bytes[i] & 0xFF) << (j * 8)), i++, j++) ;
-            System.out.println("电池满充容量：" + value + "mAh");
+            batteryData.setFullCapatity(value);
         }
     }
 
@@ -303,7 +306,7 @@ public class BatteryDataStrategy extends ProtocolStrategy
         {
             int value = 0;
             for (int i = 25, j = 0; i <= 26; value |= ((bytes[i] & 0xFF) << (j * 8)), i++, j++) ;
-            System.out.println("电池循环次数：" + value + "次");
+            batteryData.setLoopCount(value);
         }
     }
 
@@ -319,7 +322,7 @@ public class BatteryDataStrategy extends ProtocolStrategy
         {
             for (int i = 27; i < 33; stringBuilder.append(bytes[i] & 0xFF).append("-"), i++) ;
             stringBuilder.append(bytes[stringBuilder.length()] & 0xFF);
-            System.out.println("电芯电压1-7节:" + stringBuilder.toString());
+            batteryData.setBatteryVoltage_1_7(stringBuilder.toString());
         }
     }
 
@@ -335,7 +338,7 @@ public class BatteryDataStrategy extends ProtocolStrategy
         {
             for (int i = 41; i < 47; stringBuilder.append(bytes[i] & 0xFF).append("-"), i++) ;
             stringBuilder.append(bytes[stringBuilder.length()] & 0xFF);
-            System.out.println("电芯电压8-15节:" + stringBuilder.toString());
+            batteryData.setBatteryVoltage_8_15(stringBuilder.toString());
         }
     }
 
@@ -350,7 +353,7 @@ public class BatteryDataStrategy extends ProtocolStrategy
         {
             int value = 0;
             for (int i = 99, j = 0; i <= 100; value |= ((bytes[i] & 0xFF) << (j * 8)), i++, j++) ;
-            System.out.println("电池健康百分比：" + value + "%");
+            batteryData.setSoh(value);
         }
     }
 
@@ -367,7 +370,48 @@ public class BatteryDataStrategy extends ProtocolStrategy
         {
             System.arraycopy(bytes, 57, _16bytes, 0, _16bytes.length);
             for (int i = 0, len = _16bytes.length; i < len; stringBuilder.append((char) (_16bytes[i] & 0xFF)), i++) ;
-            System.out.println("电池ID信息:" + stringBuilder.toString());
+            String idInfo = stringBuilder.toString();
+            batteryData.setBatteryIdInfo(idInfo);
+            // TODO: 2019-09-26 解析电池ID信息
+            if (batteryInfoTable != null)
+            {
+                final int len = idInfo.length();
+                if (len >= 7)
+                {
+                    for (int i = 0; i < 7; i++)
+                    {
+                        switch (i)
+                        {
+                            case 0://电池容量规格
+                                batteryData._battery_capacity_specification = batteryInfoTable.match(i, idInfo.charAt(i));
+                                break;
+                            case 1://BMS生产厂家
+                                batteryData._BMS_manufacturer = batteryInfoTable.match(i, idInfo.charAt(i));
+                                break;
+                            case 2://Pack生产厂家
+                                batteryData._pack_manufacturer = batteryInfoTable.match(i, idInfo.charAt(i));
+                                break;
+                            case 3://生产线识别码
+                                batteryData._production_line_identification_code = batteryInfoTable.match(i, idInfo.charAt(i));
+                                break;
+                            case 4://电芯生产厂家
+                                batteryData._battery_manufacturer = batteryInfoTable.match(i, idInfo.charAt(i));
+                                break;
+                            case 5:
+                                batteryData._year = batteryInfoTable.match(i, idInfo.charAt(i));
+                                break;
+                            case 6:
+                                batteryData._month = batteryInfoTable.match(i, idInfo.charAt(i));
+                                break;
+                        }
+                    }
+                }
+                // TODO: 2019-09-26 提取日
+                if (len >= 9)
+                {
+                    batteryData._day = idInfo.substring(7, 9);
+                }
+            }
         }
     }
 
@@ -380,11 +424,10 @@ public class BatteryDataStrategy extends ProtocolStrategy
     {
         if (bytes.length > 78)
         {
-            int v1 = bytes[77] & 0xFF;
-            int v2 = bytes[78] & 0xFF;
-
-            System.out.println("软件版本:" + v1);
-            System.out.println("硬件版本：" + v2);
+            int v1 = bytes[77] & 0xFF;//软件版本:
+            int v2 = bytes[78] & 0xFF;//硬件版本
+            batteryData.setSoftwareVersion(v1);
+            batteryData.setHardwareVersion(v2);
         }
     }
 
@@ -398,7 +441,7 @@ public class BatteryDataStrategy extends ProtocolStrategy
         if (bytes.length > 97)
         {
             int value = bytes[97] & 0xFF;
-            System.out.println("控制板温度：" + value + "度");
+            batteryData.setControlPanelTemperature(value);
         }
     }
 
@@ -412,7 +455,7 @@ public class BatteryDataStrategy extends ProtocolStrategy
         if (bytes.length > 55)
         {
             int value = bytes[55];
-            System.out.println("控制板版本：" + value);
+            batteryData.setControlPanelVersion(value);
         }
     }
 

@@ -3,7 +3,10 @@ package com.hellohuandian.apps.strategylibrary._core.dispatchers;
 import com.hellohuandian.apps.controllerlibrary.CanDeviceController;
 import com.hellohuandian.apps.controllerlibrary.DeviceIoAction;
 import com.hellohuandian.apps.strategylibrary._core.dispatchers.canExtension.CanDeviceIoActionImpl;
+import com.hellohuandian.apps.strategylibrary.strategies.battery.BatteryData;
 import com.hellohuandian.apps.strategylibrary.strategies.battery.BatteryDataStrategy;
+import com.hellohuandian.apps.strategylibrary.strategies.battery.BatteryInfoTable;
+import com.hellohuandian.apps.strategylibrary.strategies.battery.OnBatteryDataUpdate;
 import com.hellohuandian.apps.strategylibrary.strategies.pdu.LifeStrategy;
 import com.hellohuandian.apps.strategylibrary.strategies.pushRod.OnPushAction;
 import com.hellohuandian.apps.strategylibrary.strategies.pushRod.PushRodStrategy;
@@ -93,10 +96,20 @@ public final class CanDispatcher extends ConcurrentLinkedQueue<TaskStrategy>
 
     private void initBatteryDataStrategies(final CanDeviceIoActionImpl deviceIoAction)
     {
+        BatteryInfoTable batteryInfoTable = new BatteryInfoTable();
         TaskStrategy taskStrategy;
         for (int i = 5; i <= 5; i++)
         {
             taskStrategy = new BatteryDataStrategy((byte) i);
+            ((BatteryDataStrategy) taskStrategy).setBatteryInfoTable(batteryInfoTable);
+            ((BatteryDataStrategy) taskStrategy).setOnBatteryDataUpdate(new OnBatteryDataUpdate()
+            {
+                @Override
+                public void onUpdate(BatteryData batteryData)
+                {
+                    System.out.println(batteryData.toString());
+                }
+            });
             taskStrategy.execute(deviceIoAction);
         }
     }
