@@ -5,7 +5,9 @@ import com.hellohuandian.apps.controllerlibrary.SerialPortDeviceController;
 import com.hellohuandian.apps.strategylibrary.strategies.battery.BatteryDataStrategy;
 import com.hellohuandian.apps.strategylibrary.strategies.pushRod.OnPushAction;
 import com.hellohuandian.apps.strategylibrary.strategies.pushRod.PushRodStrategy;
+import com.hellohuandian.apps.strategylibrary.strategies.upgrade.battery.BatteryUpgradeStrategy;
 import com.hellohuandian.apps.strategylibrary.strategies.upgrade.battery.JieMinKe.JieMinKeBatteryUpgradeStrategy;
+import com.hellohuandian.apps.strategylibrary.strategies.upgrade.battery.NuoWan.NuoWanBatteryUpgradeStrategy;
 import com.hellohuandian.apps.strategylibrary.strategies.upgrade.battery.OnUpgradeProgress;
 
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -57,7 +59,7 @@ public final class SerialPortDispatcher extends ConcurrentLinkedQueue<TaskStrate
                     } else
                     {
                         // TODO: 2019-09-16 执行485策略任务
-                        testBatteryInfoStrategy();
+                        testBatteryUpgradeStrategy();
                         break;
                     }
                 }
@@ -74,9 +76,12 @@ public final class SerialPortDispatcher extends ConcurrentLinkedQueue<TaskStrate
     private void testBatteryUpgradeStrategy()
     {
         // TODO: 2019-09-18 测试升级
-        JieMinKeBatteryUpgradeStrategy jieMinKeBatteryUpgradeStrategy = new JieMinKeBatteryUpgradeStrategy((byte) 0x05, "/sdcard" +
-                "/HelloBMS19S_HW0101_FW0161_CRC399D90C3_BT00000000.bin");
-        jieMinKeBatteryUpgradeStrategy.setOnUpgradeProgress(new OnUpgradeProgress()
+        //        BatteryUpgradeStrategy batteryUpgradeStrategy = new JieMinKeBatteryUpgradeStrategy((byte) 0x05, "/sdcard" +
+        //                "/HelloBMS19S_HW0101_FW0161_CRC399D90C3_BT00000000.bin");
+        BatteryUpgradeStrategy batteryUpgradeStrategy = new NuoWanBatteryUpgradeStrategy((byte) 0x05, "/sdcard" +
+                "/19_V255.bin");
+
+        batteryUpgradeStrategy.setOnUpgradeProgress(new OnUpgradeProgress()
         {
             @Override
             public void onUpgrade(byte mapAddress, byte statusFlag, String statusInfo, long currentPregress, long totalPregress)
@@ -92,7 +97,7 @@ public final class SerialPortDispatcher extends ConcurrentLinkedQueue<TaskStrate
                 }
             }
         });
-        dispatch(jieMinKeBatteryUpgradeStrategy);
+        dispatch(batteryUpgradeStrategy);
     }
 
     private void testPushRodStrategy()

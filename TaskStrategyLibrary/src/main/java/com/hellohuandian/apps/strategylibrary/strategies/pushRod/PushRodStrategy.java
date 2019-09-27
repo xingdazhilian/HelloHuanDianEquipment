@@ -6,8 +6,6 @@ import com.hellohuandian.apps.strategylibrary.strategies._base.ProtocolStrategy;
 
 import java.io.IOException;
 
-import androidx.core.util.Consumer;
-
 /**
  * Author:      Lee Yeung
  * Create Date: 2019-08-28
@@ -79,6 +77,7 @@ public class PushRodStrategy extends ProtocolStrategy
     @Override
     protected void execute_can(final CanDeviceIoAction deviceIoAction)
     {
+        sleep(2000);
         final byte[] PUSH_ROD = {address, 0x00, 0x00, 0x00, 0x08, 0x00, 0x00, 0x00, address, 0x05, 0x00, 0x09, 0x00, 0x03, 0x00, 0x00};
         // TODO: 2019-09-21 只对数据内容做crc填充
         short crc = crc16(PUSH_ROD, 8, 14);
@@ -95,10 +94,10 @@ public class PushRodStrategy extends ProtocolStrategy
 
         // TODO: 2019-09-23 生成唯一ID，格式： PUSH_ROD[0] << 16 | PUSH_ROD[8] << 8 | PUSH_ROD[11]
         final int id = (address & 0xFF) << 16 | PUSH_ROD[11];
-        deviceIoAction.register(id, new Consumer<byte[]>()
+        deviceIoAction.register(id, new NodeConsumer()
         {
             @Override
-            public void accept(byte[] bytes)
+            public void onAccept(byte[] bytes)
             {
                 int resultId = 0;
                 if (bytes != null && bytes.length == 16)

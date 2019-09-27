@@ -3,6 +3,7 @@ package com.hellohuandian.apps.strategylibrary._core.dispatchers;
 import com.hellohuandian.apps.controllerlibrary.CanDeviceController;
 import com.hellohuandian.apps.controllerlibrary.DeviceIoAction;
 import com.hellohuandian.apps.strategylibrary._core.dispatchers.canExtension.CanDeviceIoActionImpl;
+import com.hellohuandian.apps.strategylibrary.strategies._base.NodeStrategy;
 import com.hellohuandian.apps.strategylibrary.strategies.battery.BatteryData;
 import com.hellohuandian.apps.strategylibrary.strategies.battery.BatteryDataStrategy;
 import com.hellohuandian.apps.strategylibrary.strategies.battery.BatteryInfoTable;
@@ -10,6 +11,8 @@ import com.hellohuandian.apps.strategylibrary.strategies.battery.OnBatteryDataUp
 import com.hellohuandian.apps.strategylibrary.strategies.pdu.LifeStrategy;
 import com.hellohuandian.apps.strategylibrary.strategies.pushRod.OnPushAction;
 import com.hellohuandian.apps.strategylibrary.strategies.pushRod.PushRodStrategy;
+import com.hellohuandian.apps.strategylibrary.strategies.relay.OnRelaySwitchAction;
+import com.hellohuandian.apps.strategylibrary.strategies.relay.RelayCloseStrategy;
 
 import java.util.concurrent.ConcurrentLinkedQueue;
 
@@ -77,7 +80,7 @@ public final class CanDispatcher extends ConcurrentLinkedQueue<TaskStrategy>
             @Override
             public void run()
             {
-                initBatteryDataStrategies(deviceIoAction);
+                //                initBatteryDataStrategies(deviceIoAction);
 
                 while (isLoop)
                 {
@@ -92,6 +95,8 @@ public final class CanDispatcher extends ConcurrentLinkedQueue<TaskStrategy>
                 }
             }
         }).start();
+
+        testPushRodStrategy();
     }
 
     private void initBatteryDataStrategies(final CanDeviceIoActionImpl deviceIoAction)
@@ -129,35 +134,46 @@ public final class CanDispatcher extends ConcurrentLinkedQueue<TaskStrategy>
                 {
                     e.printStackTrace();
                 }
-                System.out.println("推杆");
-
-                for (int i = 5; i <= 5; i++)
+                RelayCloseStrategy relayCloseStrategy = new RelayCloseStrategy((byte) 0x15);
+                relayCloseStrategy.setOnRelaySwitchAction(new OnRelaySwitchAction()
                 {
-                    try
+                    @Override
+                    public void onSwitchSuccessed(byte address)
                     {
-                        Thread.sleep(1000);
+                        System.out.println("继电器短路成功：" + address);
                     }
-                    catch (InterruptedException e)
-                    {
-                        e.printStackTrace();
-                    }
-                    PushRodStrategy pushRodStrategy = new PushRodStrategy((byte) i);
-                    pushRodStrategy.setOnPushAction(new OnPushAction()
-                    {
-                        @Override
-                        public void onPushSuccessed(byte address)
-                        {
-                            System.out.println("推杆执行完成：" + address);
-                        }
 
-                        @Override
-                        public void onPushFailed(byte address)
-                        {
-                            System.out.println("推杆执行失败：" + address);
-                        }
-                    });
-                    add(pushRodStrategy);
-                }
+                    @Override
+                    public void onSwitchFailed(byte address)
+                    {
+                        System.out.println("继电器短路失败：" + address);
+                    }
+                });
+                PushRodStrategy pushRodStrategy = new PushRodStrategy((byte) 0x05);
+                pushRodStrategy.setOnPushAction(new OnPushAction()
+                {
+                    @Override
+                    public void onPushSuccessed(byte address)
+                    {
+                        System.out.println("推杆执行完成：" + address);
+                    }
+
+                    @Override
+                    public void onPushFailed(byte address)
+                    {
+                        System.out.println("推杆执行失败：" + address);
+                    }
+                });
+                relayCloseStrategy.addNext(pushRodStrategy)
+                        .first().call(new Consumer<NodeStrategy>()
+                {
+                    @Override
+                    public void accept(NodeStrategy nodeStrategy)
+                    {
+                        add(nodeStrategy);
+                    }
+                });
+
             }
         }).start();
     }

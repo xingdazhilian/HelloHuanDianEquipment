@@ -18,3 +18,9 @@ public abstract class TaskStrategy
 
     protected abstract void execute(DeviceIoAction deviceIoAction);
 }
+
+
+
+
+
+

@@ -8,7 +8,7 @@ import com.hellohuandian.apps.strategylibrary._core.dispatchers.canExtension.Can
  * Create Date: 2019-09-20
  * Description:
  */
-public abstract class ProtocolStrategy extends BaseStrategy
+public abstract class ProtocolStrategy extends NodeStrategy
 {
     public ProtocolStrategy(byte address)
     {
