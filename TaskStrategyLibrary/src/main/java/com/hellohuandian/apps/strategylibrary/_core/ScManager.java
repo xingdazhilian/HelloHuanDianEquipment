@@ -6,7 +6,8 @@ import com.hellohuandian.apps.strategylibrary.dispatchers.DispatcherManager;
 /**
  * Author:      Lee Yeung
  * Create Date: 2019-09-28
- * Description:
+ * Description: SC是充电柜的缩写(来自文档)
+ * 负责初始化串口和can通讯操作
  */
 public final class ScManager
 {

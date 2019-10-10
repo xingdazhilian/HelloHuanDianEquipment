@@ -1,5 +1,7 @@
 package com.hellohuandian.apps.strategylibrary.strategies.battery;
 
+import android.text.TextUtils;
+
 import androidx.annotation.NonNull;
 
 /**
@@ -24,7 +26,7 @@ public class BatteryData
     public String batteryVoltage_1_7;
     public String batteryVoltage_8_15;
     public int soh;
-    public String batteryIdInfo = "----------------";
+    public String batteryIdInfo;
     public int softwareVersion;
     public int hardwareVersion;
     public int controlPanelTemperature;
@@ -43,10 +45,7 @@ public class BatteryData
     //    public String batteryVoltage_1_7;
     //    public String batteryVoltage_8_15;
     public String str_soh;
-    //    public String batteryIdInfo;
     //    public String manufacturer;
-    public String str_softwareVersion = "--";
-    public String str_hardwareVersion = "--";
     public String str_controlPanelTemperature = "--°C";
 
     // TODO: 2019-09-26 附加的字段
@@ -142,7 +141,7 @@ public class BatteryData
 
     void setBatteryIdInfo(String batteryIdInfo)
     {
-        this.batteryIdInfo = batteryIdInfo;
+        this.batteryIdInfo = !TextUtils.isEmpty(batteryIdInfo) ? batteryIdInfo.trim() : batteryIdInfo;
     }
 
     void setSoftwareVersion(int softwareVersion)
@@ -168,24 +167,23 @@ public class BatteryData
 
     void reset()
     {
-        String str_doorLockStatus = "关闭";
-        String str_electricMachineStatus = "关闭";
-        String str_batteryTemperature = "--°C";
-        String str_batteryTotalVoltage = "0mV";
-        String str_realTimeCurrent = "0mA";
-        String str_relativeCapatityPercent = "0%";
-        String str_absoluteCapatityPercent = "0%";
-        String str_remainingCapatity = "0mAh";
-        String str_fullCapatity = "0mAh";
-        String str_loopCount = "0";
+        str_doorLockStatus = "关闭";
+        str_electricMachineStatus = "关闭";
+        str_batteryTemperature = "--°C";
+        str_batteryTotalVoltage = "0mV";
+        str_realTimeCurrent = "0mA";
+        str_relativeCapatityPercent = "0%";
+        str_absoluteCapatityPercent = "0%";
+        str_remainingCapatity = "0mAh";
+        str_fullCapatity = "0mAh";
+        str_loopCount = "0";
         //    public String batteryVoltage_1_7;
         //    public String batteryVoltage_8_15;
-        String str_soh;
-        String batteryIdInfo = "----------------";
+        str_soh = "0%";
         //    public String manufacturer;
-        String str_softwareVersion = "--";
-        String str_hardwareVersion = "--";
-        String str_controlPanelTemperature = "--°C";
+        softwareVersion = 0;
+        hardwareVersion = 0;
+        str_controlPanelTemperature = "--°C";
     }
 
     @NonNull

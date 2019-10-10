@@ -26,7 +26,7 @@ public abstract class NodeStrategy extends BaseStrategy
 
     private void setNext(NodeStrategy taskStrategy)
     {
-        previous = taskStrategy;
+        next = taskStrategy;
     }
 
     public NodeStrategy addPrevious(NodeStrategy taskStrategy)

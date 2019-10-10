@@ -6,6 +6,7 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
 
+import com.hellohuandian.apps.equipment.modules.config.MachineVersionConfig;
 import com.hellohuandian.apps.strategylibrary._core.ScManager;
 import com.hellohuandian.apps.strategylibrary.config.MachineVersion;
 import com.hellohuandian.apps.strategylibrary.monitor.BatteriesMonitor;
@@ -32,7 +33,7 @@ public class StrategyService extends Service implements OnBatteryDataUpdate
         {
             if (msg.obj instanceof BatteryData)
             {
-                //                System.out.println("电池数据：" + ((BatteryData) msg.obj).toString());
+//                System.out.println("电池数据：" + msg.obj.toString());
                 BatteryWatcherRegisters.onWatch(((BatteryData) msg.obj));
             }
         }
@@ -50,7 +51,7 @@ public class StrategyService extends Service implements OnBatteryDataUpdate
     {
         super.onCreate();
         BatteriesMonitor.getInstance().setOnBatteryDataUpdate(this);
-        ScManager.getInstance().init(MachineVersion.SC_3);
+        ScManager.getInstance().init(MachineVersionConfig.getMachineVersion());
         ScManager.getInstance().start();
     }
 

@@ -4,12 +4,14 @@ import android.os.Bundle;
 
 import com.hellohuandian.apps.equipment.R;
 import com.hellohuandian.apps.equipment._base.fragments.AppBaseFragment;
+import com.hellohuandian.apps.equipment.modules.config.MachineVersionConfig;
 import com.hellohuandian.apps.equipment.modules.main.tabPages.monitor.adapter.MonitorAdapter;
 import com.hellohuandian.apps.equipment.modules.main.viewmodel.BatteryViewModel;
 import com.hellohuandian.apps.equipment.widgets.SimpleItemDecoration;
 import com.hellohuandian.apps.equipment.widgets.dialog.AppDialog;
 import com.hellohuandian.apps.strategylibrary.config.MachineVersion;
 import com.hellohuandian.apps.strategylibrary.dispatchers.DispatcherManager;
+import com.hellohuandian.apps.strategylibrary.strategies._base.NodeStrategy;
 import com.hellohuandian.apps.strategylibrary.strategies.pushRod.OnPushAction;
 import com.hellohuandian.apps.strategylibrary.strategies.pushRod.PushRodStrategy;
 import com.hellohuandian.apps.strategylibrary.strategies.relay.RelayCloseStrategy;
@@ -44,7 +46,7 @@ public class MonitorFragment extends AppBaseFragment
 
         monitorAdapter = new MonitorAdapter(getContext());
         monitorAdapter.setOnOpenDoorAction(onOpenDoorAction);
-        setMachineVersion(MachineVersion.SC_3);
+        setMachineVersion(MachineVersionConfig.getMachineVersion());
         rvMonitor.setLayoutManager(new GridLayoutManager(getContext(), 3));
         rvMonitor.addItemDecoration(new SimpleItemDecoration());
         rvMonitor.setAdapter(monitorAdapter);
@@ -89,7 +91,8 @@ public class MonitorFragment extends AppBaseFragment
             return;
         }
         appDialog.show(getActivity().getSupportFragmentManager(), "show");
-        RelayCloseStrategy relayCloseStrategy = new RelayCloseStrategy((byte) (address + 0x15));
+
+        NodeStrategy pushNodeStrategy = null;
         PushRodStrategy pushRodStrategy = new PushRodStrategy(address);
         pushRodStrategy.setOnPushAction(new OnPushAction()
         {
@@ -106,7 +109,22 @@ public class MonitorFragment extends AppBaseFragment
             }
         });
 
-        relayCloseStrategy.addNext(pushRodStrategy)
-                .first().call(nodeStrategy -> DispatcherManager.getInstance().dispatch(nodeStrategy));
+        switch (MachineVersionConfig.getMachineVersion())
+        {
+            case MachineVersion.SC_1:
+                pushNodeStrategy = pushRodStrategy;
+                break;
+            case MachineVersion.SC_2:
+            case MachineVersion.SC_3:
+            case MachineVersion.SC_4:
+                pushNodeStrategy = pushRodStrategy.addPrevious(new RelayCloseStrategy((byte) (address - 0x05 + 0x15)));
+                break;
+        }
+
+        if (pushNodeStrategy != null)
+        {
+            pushNodeStrategy.first()
+                    .call(nodeStrategy -> DispatcherManager.getInstance().dispatch(nodeStrategy));
+        }
     }
 }

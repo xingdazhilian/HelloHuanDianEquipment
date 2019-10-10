@@ -91,7 +91,7 @@ public class BaseDialog extends DialogFragment
 
     public boolean isShowing()
     {
-        return isVisible();
+        return getDialog() != null && getDialog().isShowing();
     }
 
     @Override

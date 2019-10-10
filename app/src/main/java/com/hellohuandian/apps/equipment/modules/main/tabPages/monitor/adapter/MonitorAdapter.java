@@ -93,6 +93,7 @@ public class MonitorAdapter extends BaseRecycleAdapter<BatteryData, MonitorAdapt
             ViewGroup.MarginLayoutParams marginLayoutParams = (ViewGroup.MarginLayoutParams) layoutParams;
             if (totalRowCount > 0 && spanCount > 0)
             {
+                // TODO: 2019-10-10 动态计算高度
                 marginLayoutParams.height = (parent.getMeasuredHeight()
                         - verticalSpacing * (totalRowCount - 1)) / totalRowCount;
             }
@@ -126,12 +127,12 @@ public class MonitorAdapter extends BaseRecycleAdapter<BatteryData, MonitorAdapt
             this.model = model;
 
             tvPosition.setText(String.format("%02d", position + 1));
-            tvId.setText(TextUtils.isEmpty(model.batteryIdInfo) ? "----------------" : model.batteryIdInfo);
+            tvId.setText(!TextUtils.isEmpty(model.batteryIdInfo) ? model.batteryIdInfo : "");
             tvBatterySimpleInfo.setText(model.str_batteryTotalVoltage + "\n"
                     + model.str_relativeCapatityPercent + "\n"
                     + model.str_realTimeCurrent + "\n"
                     + model.str_batteryTemperature + "\n"
-                    + "sv" + model.str_softwareVersion + ",hv" + model.str_hardwareVersion);
+                    + "sv" + model.softwareVersion + ",hv" + model.hardwareVersion);
         }
 
         @Override
