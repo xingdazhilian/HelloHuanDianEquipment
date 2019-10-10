@@ -1,7 +1,7 @@
 package com.hellohuandian.apps.strategylibrary.strategies._base;
 
 import com.hellohuandian.apps.controllerlibrary.DeviceIoAction;
-import com.hellohuandian.apps.strategylibrary._core.dispatchers.canExtension.CanDeviceIoAction;
+import com.hellohuandian.apps.strategylibrary.dispatchers.canExtension.CanDeviceIoAction;
 
 /**
  * Author:      Lee Yeung
@@ -16,7 +16,7 @@ public abstract class ProtocolStrategy extends NodeStrategy
     }
 
     @Override
-    protected final void execute(DeviceIoAction deviceIoAction)
+    public final void execute(DeviceIoAction deviceIoAction)
     {
         if (deviceIoAction == null)
         {
@@ -25,10 +25,10 @@ public abstract class ProtocolStrategy extends NodeStrategy
 
         switch (deviceIoAction.ioProtocol())
         {
-            case DeviceIoAction.SERIAL_PORT:
+            case DeviceIoAction.Protocol.SERIAL_PORT:
                 execute_sp(deviceIoAction);
                 break;
-            case DeviceIoAction.CANBUS:
+            case DeviceIoAction.Protocol.CANBUS:
                 if (deviceIoAction instanceof CanDeviceIoAction)
                 {
                     execute_can((CanDeviceIoAction) deviceIoAction);

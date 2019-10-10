@@ -9,6 +9,8 @@ import androidx.annotation.NonNull;
  */
 public class BatteryData
 {
+    public final byte address;
+
     public byte doorLockStatus;
     public byte electricMachineStatus;
     public float batteryTemperature;
@@ -22,7 +24,7 @@ public class BatteryData
     public String batteryVoltage_1_7;
     public String batteryVoltage_8_15;
     public int soh;
-    public String batteryIdInfo;
+    public String batteryIdInfo = "----------------";
     public int softwareVersion;
     public int hardwareVersion;
     public int controlPanelTemperature;
@@ -30,22 +32,22 @@ public class BatteryData
 
     public String str_doorLockStatus;
     public String str_electricMachineStatus;
-    public String str_batteryTemperature;
-    public String str_batteryTotalVoltage;
-    public String str_realTimeCurrent;
-    public String str_relativeCapatityPercent;
-    public String str_absoluteCapatityPercent;
-    public String str_remainingCapatity;
-    public String str_fullCapatity;
-    public String str_loopCount;
+    public String str_batteryTemperature = "--°C";
+    public String str_batteryTotalVoltage = "0mV";
+    public String str_realTimeCurrent = "0mA";
+    public String str_relativeCapatityPercent = "0%";
+    public String str_absoluteCapatityPercent = "0%";
+    public String str_remainingCapatity = "0mAh";
+    public String str_fullCapatity = "0mAh";
+    public String str_loopCount = "0";
     //    public String batteryVoltage_1_7;
     //    public String batteryVoltage_8_15;
     public String str_soh;
     //    public String batteryIdInfo;
     //    public String manufacturer;
-    public String str_softwareVersion;
-    public String str_hardwareVersion;
-    public String str_controlPanelTemperature;
+    public String str_softwareVersion = "--";
+    public String str_hardwareVersion = "--";
+    public String str_controlPanelTemperature = "--°C";
 
     // TODO: 2019-09-26 附加的字段
     public String _battery_capacity_specification;//电池容量规格
@@ -57,6 +59,10 @@ public class BatteryData
     public String _month;
     public String _day;
 
+    public BatteryData(byte address)
+    {
+        this.address = address;
+    }
 
     void setDoorLockStatus(byte doorLockStatus)
     {
@@ -162,6 +168,24 @@ public class BatteryData
 
     void reset()
     {
+        String str_doorLockStatus = "关闭";
+        String str_electricMachineStatus = "关闭";
+        String str_batteryTemperature = "--°C";
+        String str_batteryTotalVoltage = "0mV";
+        String str_realTimeCurrent = "0mA";
+        String str_relativeCapatityPercent = "0%";
+        String str_absoluteCapatityPercent = "0%";
+        String str_remainingCapatity = "0mAh";
+        String str_fullCapatity = "0mAh";
+        String str_loopCount = "0";
+        //    public String batteryVoltage_1_7;
+        //    public String batteryVoltage_8_15;
+        String str_soh;
+        String batteryIdInfo = "----------------";
+        //    public String manufacturer;
+        String str_softwareVersion = "--";
+        String str_hardwareVersion = "--";
+        String str_controlPanelTemperature = "--°C";
     }
 
     @NonNull

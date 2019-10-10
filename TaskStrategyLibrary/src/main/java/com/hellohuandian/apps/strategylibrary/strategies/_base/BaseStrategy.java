@@ -1,7 +1,5 @@
 package com.hellohuandian.apps.strategylibrary.strategies._base;
 
-import com.hellohuandian.apps.strategylibrary._core.dispatchers.TaskStrategy;
-
 /**
  * Author:      Lee Yeung
  * Create Date: 2019-09-16

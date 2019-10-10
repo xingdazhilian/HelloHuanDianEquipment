@@ -24,6 +24,7 @@ ext {
             //support
             "appcompat-v7"                    : 'androidx.appcompat:appcompat:1.0.0',
             "recyclerview-v7"                 : 'androidx.recyclerview:recyclerview:1.0.0',
+            "cardview-v7"                     : 'androidx.cardview:cardview:1.0.0',
             "constraintlayout"                : "androidx.constraintlayout:constraintlayout:${version["constraintlayoutVersion"]}",
 
             //network

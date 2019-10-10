@@ -19,7 +19,7 @@ public class RelayCloseStrategy extends BaseStrategy
     }
 
     @Override
-    protected void execute(DeviceIoAction deviceIoAction)
+    public void execute(DeviceIoAction deviceIoAction)
     {
 
     }

@@ -228,9 +228,11 @@ public class JieMinKeBatteryUpgradeStrategy extends BatteryUpgradeStrategy
                 sum = calculateSum(firmwareInfo, 1, 20);
                 firmwareInfo[21] = (byte) (sum & 0xFF);
                 firmwareInfo[22] = (byte) (sum >> 8 & 0xFF);
+                System.out.println("新固件信息写入:" + StringFormatHelper.getInstance().toHexString(firmwareInfo));
                 deviceIoAction.write(firmwareInfo);
                 sleep(1000);
                 result = deviceIoAction.read();
+                System.out.println("新固件信息读取:" + StringFormatHelper.getInstance().toHexString(result));
                 if (result != null && result.length > 0)
                 {
                     onUpgradeProgress.onUpgrade(address, BatteryUpgradeStatus.INIT_FIRMWARE_DATA, "新固件信息发送成功!", 0, totalFrameSize);
@@ -292,9 +294,11 @@ public class JieMinKeBatteryUpgradeStrategy extends BatteryUpgradeStrategy
                     lastData[++end] = 0x0D;
                     lastData[++end] = 0x0A;
 
+                    System.out.println("最后一针写："+StringFormatHelper.getInstance().toHexString(lastData));
                     deviceIoAction.write(lastData);
                     sleep(5000);
                     result = deviceIoAction.read();
+                    System.out.println("最后一针读："+StringFormatHelper.getInstance().toHexString(result));
                     if (result != null && result.length > 0)
                     {
                         onUpgradeProgress.onUpgrade(address, BatteryUpgradeStatus.WRITE_DATA, "发送" + sn + "条成功", sn, totalFrameSize);
@@ -305,14 +309,15 @@ public class JieMinKeBatteryUpgradeStrategy extends BatteryUpgradeStrategy
                     }
                 }
 
-
                 sum = calculateSum(activationBMS, 1, 5);
                 activationBMS[6] = (byte) (sum & 0xFF);
                 activationBMS[7] = (byte) (sum >> 8 & 0xFF);
                 onUpgradeProgress.onUpgrade(address, BatteryUpgradeStatus.ACTION_BMS, "开始激活...", totalFrameSize, totalFrameSize);
+                System.out.println("激活写："+StringFormatHelper.getInstance().toHexString(activationBMS));
                 deviceIoAction.write(activationBMS);
                 sleep(100);
                 result = deviceIoAction.read();
+                System.out.println("激活读："+StringFormatHelper.getInstance().toHexString(result));
                 if (result != null && result.length > 0)
                 {
                     onUpgradeProgress.onUpgrade(address, BatteryUpgradeStatus.SUCCESSED, "激活成功", totalFrameSize, totalFrameSize);

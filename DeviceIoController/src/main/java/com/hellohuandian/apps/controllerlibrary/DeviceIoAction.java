@@ -13,14 +13,12 @@ import androidx.annotation.IntDef;
  */
 public interface DeviceIoAction
 {
-    int SERIAL_PORT = 100;
-    int CANBUS = 200;
-
-    @IntDef({SERIAL_PORT, CANBUS})
+    @IntDef({Protocol.SERIAL_PORT, Protocol.CANBUS})
     @Retention(RetentionPolicy.SOURCE)
     @interface Protocol
     {
-
+        int SERIAL_PORT = 100;
+        int CANBUS = 200;
     }
 
     void write(byte[] data) throws IOException;

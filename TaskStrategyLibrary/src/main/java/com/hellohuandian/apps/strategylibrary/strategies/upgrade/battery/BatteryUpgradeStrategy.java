@@ -34,7 +34,7 @@ public abstract class BatteryUpgradeStrategy extends BaseStrategy
     protected abstract void upgrade(DeviceIoAction deviceIoAction, OnUpgradeProgress onUpgradeProgress);
 
     @Override
-    protected void execute(DeviceIoAction deviceIoAction)
+    public void execute(DeviceIoAction deviceIoAction)
     {
         upgrade(deviceIoAction, onUpgradeProgress);
     }

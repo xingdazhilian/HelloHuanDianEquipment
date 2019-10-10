@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/card_background"
+    android:padding="10dp"
+    >
+
+    <TextView
+        android:id="@+id/tv_position"
+        android:layout_width="150dp"
+        android:layout_height="wrap_content"
+        android:layout_marginRight="16dp"
+        android:gravity="center"
+        android:paddingTop="10dp"
+        android:paddingBottom="10dp"
+        android:text="--"
+        android:textColor="@color/colorBlack"
+        android:textSize="50sp"
+        android:textStyle="bold"/>
+
+    <TextView
+        android:id="@+id/tv_openDoor"
+        android:layout_width="150dp"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/tv_position"
+        android:background="@drawable/open_door_background"
+        android:gravity="center"
+        android:paddingTop="8dp"
+        android:paddingBottom="5dp"
+        android:text="开门"
+        android:textColor="@color/colorWhite"
+        android:textSize="17sp"
+        android:textStyle="bold"/>
+
+    <TextView
+        android:id="@+id/tv_idLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_toRightOf="@+id/tv_position"
+        android:text="ID:"
+        android:textColor="@color/colorBlack"
+        android:textSize="22sp"
+        android:textStyle="bold"/>
+
+    <TextView
+        android:id="@+id/tv_id"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignTop="@id/tv_idLabel"
+        android:layout_toRightOf="@+id/tv_idLabel"
+        android:text="0000000000000000"
+        android:textColor="@color/colorGreen"
+        android:textSize="22sp"
+        android:textStyle="bold"/>
+
+    <TextView
+        android:id="@+id/tv_batterySimpleInfoLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/tv_idLabel"
+        android:layout_alignLeft="@id/tv_idLabel"
+        android:layout_marginTop="10dp"
+        android:lineSpacingExtra="2dp"
+        android:lineSpacingMultiplier="1.1"
+        android:text="电压：\n电量：\n电流：\n温度：\n版本："
+        android:textColor="@color/colorBlack"
+        android:textSize="16sp"
+        />
+
+    <TextView
+        android:id="@+id/tv_batterySimpleInfo"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/tv_idLabel"
+        android:layout_marginTop="10dp"
+        android:layout_toRightOf="@+id/tv_batterySimpleInfoLabel"
+        android:lineSpacingExtra="2dp"
+        android:lineSpacingMultiplier="1.1"
+        android:textColor="@color/colorGreen"
+        android:textSize="16sp"
+        />
+
+    <TextView
+        android:id="@+id/tv_batteryLockInfoLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/tv_idLabel"
+        android:layout_alignLeft="@id/tv_idLabel"
+        android:layout_marginLeft="160dp"
+        android:layout_marginTop="10dp"
+        android:lineSpacingExtra="2dp"
+        android:lineSpacingMultiplier="1.1"
+        android:text="锁微动：\n侧微动："
+        android:textColor="@color/colorBlack"
+        android:textSize="16sp"
+        />
+
+    <!--电池锁微动-->
+    <TextView
+        android:id="@+id/tv_batteryLockMicroswitch"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/tv_idLabel"
+        android:layout_alignTop="@+id/tv_batteryLockInfoLabel"
+        android:layout_toRightOf="@+id/tv_batteryLockInfoLabel"
+        android:text="没电池"
+        android:textColor="@color/colorBlack"
+        android:textSize="16sp"
+        />
+
+    <!--电池侧微动-->
+    <TextView
+        android:id="@+id/tv_batterySideMicroswitch"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/tv_batteryLockMicroswitch"
+        android:layout_toRightOf="@+id/tv_batteryLockInfoLabel"
+        android:text="没电池"
+        android:textColor="@color/colorBlack"
+        android:textSize="16sp"
+        />
+</RelativeLayout>

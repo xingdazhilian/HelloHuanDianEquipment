@@ -77,6 +77,6 @@ public final class SerialPortDeviceController implements Consumer<SerialPortIoAc
     @Override
     public int ioProtocol()
     {
-        return SERIAL_PORT;
+        return Protocol.SERIAL_PORT;
     }
 }

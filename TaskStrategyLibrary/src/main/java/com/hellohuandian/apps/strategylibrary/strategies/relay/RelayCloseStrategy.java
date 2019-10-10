@@ -1,9 +1,8 @@
 package com.hellohuandian.apps.strategylibrary.strategies.relay;
 
 import com.hellohuandian.apps.controllerlibrary.DeviceIoAction;
-import com.hellohuandian.apps.strategylibrary._core.dispatchers.canExtension.CanDeviceIoAction;
+import com.hellohuandian.apps.strategylibrary.dispatchers.canExtension.CanDeviceIoAction;
 import com.hellohuandian.apps.strategylibrary.strategies._base.ProtocolStrategy;
-import com.hellohuandian.apps.utillibrary.StringFormatHelper;
 
 import java.io.IOException;
 
@@ -35,17 +34,6 @@ public class RelayCloseStrategy extends ProtocolStrategy
     @Override
     protected void execute_can(final CanDeviceIoAction deviceIoAction)
     {
-        final byte[] DATA = new byte[]{0x00, address, 0x00, (byte) 0x98, 0x06, 0x00, 0x00, 0x00, (byte) 0xAA, 0x00, 0x22, 0x02, 0x00, 0x00,
-                0x00, 0x00};
-        try
-        {
-            System.out.println("关闭继电器：" + StringFormatHelper.getInstance().toHexString(DATA));
-            deviceIoAction.write(DATA);
-        }
-        catch (IOException e)
-        {
-            e.printStackTrace();
-        }
         // TODO: 2019-09-27 配置好结果ID
         final int resultId = 0x98 << 24 | (0x02 & 0xFF) << 16 | (0x00 & 0xFF) << 8 | (address & 0xFF);
         deviceIoAction.register(resultId, new NodeConsumer()
@@ -53,7 +41,6 @@ public class RelayCloseStrategy extends ProtocolStrategy
             @Override
             public void onAccept(byte[] bytes)
             {
-                System.out.println("继电器结果：" + StringFormatHelper.getInstance().toHexString(bytes));
                 if (onRelaySwitchAction != null)
                 {
                     onRelaySwitchAction.onSwitchSuccessed(address);
@@ -61,5 +48,15 @@ public class RelayCloseStrategy extends ProtocolStrategy
                 deviceIoAction.unRegister(resultId);
             }
         });
+        final byte[] DATA = new byte[]{0x00, address, 0x00, (byte) 0x98, 0x06, 0x00, 0x00, 0x00, (byte) 0xAA, 0x00, 0x22, 0x02, 0x00, 0x00,
+                0x00, 0x00};
+        try
+        {
+            deviceIoAction.write(DATA);
+        }
+        catch (IOException e)
+        {
+            e.printStackTrace();
+        }
     }
 }

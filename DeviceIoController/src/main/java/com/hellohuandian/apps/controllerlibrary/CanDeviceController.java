@@ -67,6 +67,6 @@ public class CanDeviceController implements Consumer<CanIoAction>, DeviceIoActio
     @Override
     public int ioProtocol()
     {
-        return CANBUS;
+        return Protocol.CANBUS;
     }
 }

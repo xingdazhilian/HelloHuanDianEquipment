@@ -35,7 +35,7 @@ public final class BatteryInfoTable extends ConcurrentHashMap<String, String>
         put("1B", "博强");
         put("1C", "超力源");
         put("1D", "诺万");
-        put("1E", "捷敏科");
+        put("1K", "捷敏科");
         // TODO: 2019-09-26 Pack生产厂家 = 生产线识别码 = 电芯生产厂家
         put("2A", "华富");
         put("2B", "南都");
@@ -44,7 +44,7 @@ public final class BatteryInfoTable extends ConcurrentHashMap<String, String>
         put("2E", "乐嘉");
         put("2F", "鹏辉");
         put("2G", "沃泰通");
-        put("2H", "洁能劲");
+        put("2K", "洁能劲");
         // TODO: 2019-09-26 ：年
         put("5F", "2018");
         put("5G", "2019");

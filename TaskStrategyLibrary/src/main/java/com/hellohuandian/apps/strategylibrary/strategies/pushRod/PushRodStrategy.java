@@ -1,7 +1,7 @@
 package com.hellohuandian.apps.strategylibrary.strategies.pushRod;
 
 import com.hellohuandian.apps.controllerlibrary.DeviceIoAction;
-import com.hellohuandian.apps.strategylibrary._core.dispatchers.canExtension.CanDeviceIoAction;
+import com.hellohuandian.apps.strategylibrary.dispatchers.canExtension.CanDeviceIoAction;
 import com.hellohuandian.apps.strategylibrary.strategies._base.ProtocolStrategy;
 
 import java.io.IOException;

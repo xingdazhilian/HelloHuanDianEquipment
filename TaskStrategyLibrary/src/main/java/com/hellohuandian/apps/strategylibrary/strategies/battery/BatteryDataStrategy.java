@@ -1,7 +1,7 @@
 package com.hellohuandian.apps.strategylibrary.strategies.battery;
 
 import com.hellohuandian.apps.controllerlibrary.DeviceIoAction;
-import com.hellohuandian.apps.strategylibrary._core.dispatchers.canExtension.CanDeviceIoAction;
+import com.hellohuandian.apps.strategylibrary.dispatchers.canExtension.CanDeviceIoAction;
 import com.hellohuandian.apps.strategylibrary.strategies._base.ProtocolStrategy;
 import com.hellohuandian.apps.utillibrary.StringFormatHelper;
 
@@ -18,7 +18,7 @@ public class BatteryDataStrategy extends ProtocolStrategy
 {
     private final StringBuilder stringBuilder = new StringBuilder();
     private final byte[] _16bytes = new byte[16];
-    private final BatteryData batteryData = new BatteryData();
+    private final BatteryData batteryData = new BatteryData(address);
     private OnBatteryDataUpdate onBatteryDataUpdate;
     private BatteryInfoTable batteryInfoTable;
 
@@ -30,6 +30,16 @@ public class BatteryDataStrategy extends ProtocolStrategy
     public void setOnBatteryDataUpdate(OnBatteryDataUpdate onBatteryDataUpdate)
     {
         this.onBatteryDataUpdate = onBatteryDataUpdate;
+
+        if (onBatteryDataUpdate != null)
+        {
+            onBatteryDataUpdate.onUpdate(batteryData);
+        }
+    }
+
+    public BatteryData obtainBatteryData()
+    {
+        return batteryData;
     }
 
     public void setBatteryInfoTable(BatteryInfoTable batteryInfoTable)
@@ -61,21 +71,6 @@ public class BatteryDataStrategy extends ProtocolStrategy
     @Override
     protected void execute_can(CanDeviceIoAction deviceIoAction)
     {
-        // TODO: 2019-09-25 虽然默认控制板会上报数据包信息，但是为了功能结构统一，必须执行
-        final byte[] DATA = {address, 0x00, 0x00, 0x00, 0x08, 0x00, 0x00, 0x00, address, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-        // TODO: 2019-09-21 只对数据内容做crc填充
-        short crc = crc16(DATA, 8, 14);
-        DATA[DATA.length - 2] = (byte) (crc & 0xFF);
-        DATA[DATA.length - 1] = (byte) (crc >> 8 & 0xFF);
-        try
-        {
-            deviceIoAction.write(DATA);
-        }
-        catch (IOException e)
-        {
-            e.printStackTrace();
-        }
-
         final int resultId = address;
         deviceIoAction.register(resultId, new Consumer<byte[]>()
         {
@@ -118,6 +113,21 @@ public class BatteryDataStrategy extends ProtocolStrategy
                 }
             }
         });
+
+        // TODO: 2019-09-25 虽然默认控制板会上报数据包信息，但是为了功能结构统一，必须执行
+        final byte[] DATA = {address, 0x00, 0x00, 0x00, 0x08, 0x00, 0x00, 0x00, address, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+        // TODO: 2019-09-21 只对数据内容做crc填充
+        short crc = crc16(DATA, 8, 14);
+        DATA[DATA.length - 2] = (byte) (crc & 0xFF);
+        DATA[DATA.length - 1] = (byte) (crc >> 8 & 0xFF);
+        try
+        {
+            deviceIoAction.write(DATA);
+        }
+        catch (IOException e)
+        {
+            e.printStackTrace();
+        }
     }
 
     /**
