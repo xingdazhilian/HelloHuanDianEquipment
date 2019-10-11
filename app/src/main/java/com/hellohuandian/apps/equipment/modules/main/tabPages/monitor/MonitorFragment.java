@@ -12,11 +12,16 @@ import com.hellohuandian.apps.equipment.widgets.dialog.AppDialog;
 import com.hellohuandian.apps.strategylibrary.config.MachineVersion;
 import com.hellohuandian.apps.strategylibrary.dispatchers.DispatcherManager;
 import com.hellohuandian.apps.strategylibrary.strategies._base.NodeStrategy;
+import com.hellohuandian.apps.strategylibrary.strategies.activation.Action485;
 import com.hellohuandian.apps.strategylibrary.strategies.pushRod.OnPushAction;
 import com.hellohuandian.apps.strategylibrary.strategies.pushRod.PushRodStrategy;
 import com.hellohuandian.apps.strategylibrary.strategies.relay.RelayCloseStrategy;
+import com.hellohuandian.apps.strategylibrary.strategies.upgrade.battery.BatteryUpgradeStrategy;
+import com.hellohuandian.apps.strategylibrary.strategies.upgrade.battery.JieMinKe.JieMinKeBatteryUpgradeStrategy;
+import com.hellohuandian.apps.strategylibrary.strategies.upgrade.battery.OnUpgradeProgress;
 
 import androidx.annotation.Nullable;
+import androidx.core.util.Consumer;
 import androidx.lifecycle.ViewModelProviders;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -61,6 +66,8 @@ public class MonitorFragment extends AppBaseFragment
                 }
             });
         }
+
+        testBatteryUpgradeStrategy();
     }
 
     @Override
@@ -126,5 +133,57 @@ public class MonitorFragment extends AppBaseFragment
             pushNodeStrategy.first()
                     .call(nodeStrategy -> DispatcherManager.getInstance().dispatch(nodeStrategy));
         }
+    }
+
+    private void testBatteryUpgradeStrategy()
+    {
+        new Thread(new Runnable()
+        {
+            @Override
+            public void run()
+            {
+                System.out.println("准备升级");
+                try
+                {
+                    Thread.sleep(5000);
+                }
+                catch (InterruptedException e)
+                {
+                    e.printStackTrace();
+                }
+                System.out.println("开始升级");
+                BatteryUpgradeStrategy batteryUpgradeStrategy = new JieMinKeBatteryUpgradeStrategy((byte) 0x05, "/sdcard/Download" +
+                        "/HelloBMS19S_HW0101_FW0163_CRC62069E48.bin");
+                batteryUpgradeStrategy.setOnUpgradeProgress(new OnUpgradeProgress()
+                {
+                    @Override
+                    public void onUpgrade(byte mapAddress, byte statusFlag, String statusInfo, long currentPregress, long totalPregress)
+                    {
+                        System.out.println("mapAddress:" + mapAddress + Thread.currentThread().getName());
+                        System.out.println("statusFlag:" + statusFlag);
+                        System.out.println("statusInfo:" + statusInfo);
+                        System.out.println("currentPregress:" + currentPregress);
+                        System.out.println("totalPregress:" + totalPregress);
+                        if (totalPregress > 0)
+                        {
+                            System.out.println((int) ((float) currentPregress / totalPregress * 100) + "%");
+                        }
+                    }
+                });
+
+                batteryUpgradeStrategy.addNext(new Action485((byte) 0x05))
+                        .first()
+                        .call(new Consumer<NodeStrategy>()
+                        {
+                            @Override
+                            public void accept(NodeStrategy nodeStrategy)
+                            {
+                                System.out.println("nodeStrategy:" + nodeStrategy.toString());
+                                DispatcherManager.getInstance().dispatch(nodeStrategy);
+                            }
+                        });
+
+            }
+        }).start();
     }
 }

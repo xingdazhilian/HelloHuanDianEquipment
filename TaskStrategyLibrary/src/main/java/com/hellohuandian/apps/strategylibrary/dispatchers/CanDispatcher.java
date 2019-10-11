@@ -43,15 +43,21 @@ final class CanDispatcher extends TaskDispatcher<TaskStrategy>
     {
         if (!isLoop)
         {
-            isLoop = true;
-            CanDeviceController.getInstance().execute(new Consumer<DeviceIoAction>()
+            synchronized (this)
             {
-                @Override
-                public void accept(DeviceIoAction deviceIoAction)
+                if (!isLoop)
                 {
-                    CanDeviceIoActionImplWrapping(new CanDeviceIoActionImpl(deviceIoAction));
+                    isLoop = true;
+                    CanDeviceController.getInstance().execute(new Consumer<DeviceIoAction>()
+                    {
+                        @Override
+                        public void accept(DeviceIoAction deviceIoAction)
+                        {
+                            CanDeviceIoActionImplWrapping(new CanDeviceIoActionImpl(deviceIoAction));
+                        }
+                    });
                 }
-            });
+            }
         }
     }
 
@@ -87,7 +93,7 @@ final class CanDispatcher extends TaskDispatcher<TaskStrategy>
 
     private void finalRead(final CanDeviceIoActionImpl canDeviceIoAction)
     {
-        new Thread(new Runnable()
+        Thread canReadThread = new Thread(new Runnable()
         {
             @Override
             public void run()
@@ -98,12 +104,14 @@ final class CanDispatcher extends TaskDispatcher<TaskStrategy>
                     canDeviceIoAction.parseDispatch();
                 }
             }
-        }).start();
+        });
+        canReadThread.setName("Thread_CanRead");
+        canReadThread.start();
     }
 
     private void finalWrite(final CanDeviceIoActionImpl deviceIoAction)
     {
-        new Thread(new Runnable()
+        Thread canWriteThread = new Thread(new Runnable()
         {
             @Override
             public void run()
@@ -120,7 +128,9 @@ final class CanDispatcher extends TaskDispatcher<TaskStrategy>
                     pduLifeStrategy.execute(deviceIoAction);
                 }
             }
-        }).start();
+        });
+        canWriteThread.setName("Thread_CanWrite");
+        canWriteThread.start();
     }
 
     private void testRelayOpenStrategy()

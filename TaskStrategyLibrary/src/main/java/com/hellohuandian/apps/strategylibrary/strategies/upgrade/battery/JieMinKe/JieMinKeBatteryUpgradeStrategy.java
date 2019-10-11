@@ -103,12 +103,12 @@ public class JieMinKeBatteryUpgradeStrategy extends BatteryUpgradeStrategy
 
             // TODO: 2019-09-05 激活485转发
             sleep(10 * 1000);
-            System.out.println("》" + StringFormatHelper.getInstance().toHexString(_485));
+            System.out.println("激活485转发" + StringFormatHelper.getInstance().toHexString(_485));
             deviceIoAction.write(_485);
             // TODO: 2019-09-05 读取一次串口数据
             sleep(200);
             result = deviceIoAction.read();
-            System.out.println("《" + StringFormatHelper.getInstance().toHexString(result));
+            System.out.println("激活485转发结果" + StringFormatHelper.getInstance().toHexString(result));
             if (result != null && result.length > 0)
             {
                 onUpgradeProgress.onUpgrade(address, BatteryUpgradeStatus.WAITTING, "激活485转发成功!", 0, 0);
@@ -128,7 +128,6 @@ public class JieMinKeBatteryUpgradeStrategy extends BatteryUpgradeStrategy
             while (System.currentTimeMillis() - startTime < 30 * 1000)//超过30S失败
             {
                 deviceIoAction.write(bootLoaderMode);
-
                 sleep(500);
                 result = deviceIoAction.read();
                 if (result != null && result.length > 0)
@@ -136,12 +135,15 @@ public class JieMinKeBatteryUpgradeStrategy extends BatteryUpgradeStrategy
                     break;
                 }
             }
-            if (result != null && result.length > 0)
+
+            if (result != null && result.length > 6 && result[4] == (byte) 0xF1 && result[5] == 0x00)
             {
                 onUpgradeProgress.onUpgrade(address, BatteryUpgradeStatus.BOOT_LOADER_MODE, "进入BootLoader模式成功!", 0, 0);
             } else
             {
-                onUpgradeProgress.onUpgrade(address, BatteryUpgradeStatus.FAILED, "进入BootLoader模式失败!", 0, 0);
+                onUpgradeProgress.onUpgrade(address, BatteryUpgradeStatus.FAILED, "进入BootLoader模式失败!"
+                                + StringFormatHelper.getInstance().toHexString(result),
+                        0, 0);
                 return;
             }
 
@@ -149,36 +151,46 @@ public class JieMinKeBatteryUpgradeStrategy extends BatteryUpgradeStrategy
             sum = calculateSum(BMS_cmd, 1, 5);
             BMS_cmd[6] = (byte) (sum & 0xFF);
             BMS_cmd[7] = (byte) (sum >> 8 & 0xFF);
-            System.out.println("》" + StringFormatHelper.getInstance().toHexString(BMS_cmd));
+            System.out.println("读取电池信息：" + StringFormatHelper.getInstance().toHexString(BMS_cmd));
             deviceIoAction.write(BMS_cmd);
             sleep(200);
             result = deviceIoAction.read();
-            System.out.println("《" + StringFormatHelper.getInstance().toHexString(result));
+            System.out.println("读取电池信息结果：" + StringFormatHelper.getInstance().toHexString(result));
             if (result != null && result.length > 30)
             {
                 if ((result[27] & 0xFF) != 0)
                 {
-                    onUpgradeProgress.onUpgrade(address, BatteryUpgradeStatus.FAILED, "BMS厂商不匹配!", 0, 0);
+                    onUpgradeProgress.onUpgrade(address, BatteryUpgradeStatus.FAILED,
+                            "BMS厂商不匹配!" + StringFormatHelper.getInstance().toHexString(result)
+                            , 0, 0);
                     return;
                 }
                 if ((result[28] & 0xFF) != 0)
                 {
-                    onUpgradeProgress.onUpgrade(address, BatteryUpgradeStatus.FAILED, "电池厂商不匹配!", 0, 0);
+                    onUpgradeProgress.onUpgrade(address, BatteryUpgradeStatus.FAILED,
+                            "电池厂商不匹配!" + StringFormatHelper.getInstance().toHexString(result)
+                            , 0, 0);
                     return;
                 }
                 if ((result[29] & 0xFF) != 0)
                 {
-                    onUpgradeProgress.onUpgrade(address, BatteryUpgradeStatus.FAILED, "电芯类型不匹配!", 0, 0);
+                    onUpgradeProgress.onUpgrade(address, BatteryUpgradeStatus.FAILED,
+                            "电芯类型不匹配!" + StringFormatHelper.getInstance().toHexString(result)
+                            , 0, 0);
                     return;
                 }
                 if ((result[30] & 0xFF) != 0)
                 {
-                    onUpgradeProgress.onUpgrade(address, BatteryUpgradeStatus.FAILED, "电池型号不匹配!", 0, 0);
+                    onUpgradeProgress.onUpgrade(address, BatteryUpgradeStatus.FAILED,
+                            "电池型号不匹配!" + StringFormatHelper.getInstance().toHexString(result)
+                            , 0, 0);
                     return;
                 }
             } else
             {
-                onUpgradeProgress.onUpgrade(address, BatteryUpgradeStatus.FAILED, "电池信息无效!", 0, 0);
+                onUpgradeProgress.onUpgrade(address, BatteryUpgradeStatus.FAILED,
+                        "电池信息无效!" + StringFormatHelper.getInstance().toHexString(result),
+                        0, 0);
                 return;
             }
 
@@ -233,12 +245,14 @@ public class JieMinKeBatteryUpgradeStrategy extends BatteryUpgradeStrategy
                 sleep(1000);
                 result = deviceIoAction.read();
                 System.out.println("新固件信息读取:" + StringFormatHelper.getInstance().toHexString(result));
-                if (result != null && result.length > 0)
+                if (result != null && result.length > 6 && result[4] == (byte) 0xF6 && result[5] == 0x00)
                 {
                     onUpgradeProgress.onUpgrade(address, BatteryUpgradeStatus.INIT_FIRMWARE_DATA, "新固件信息发送成功!", 0, totalFrameSize);
                 } else
                 {
-                    onUpgradeProgress.onUpgrade(address, BatteryUpgradeStatus.FAILED, "新固件信息发送失败!", 0, totalFrameSize);
+                    onUpgradeProgress.onUpgrade(address, BatteryUpgradeStatus.FAILED,
+                            "新固件信息发送失败!" + StringFormatHelper.getInstance().toHexString(result)
+                            , 0, totalFrameSize);
                     return;
                 }
 
@@ -262,12 +276,15 @@ public class JieMinKeBatteryUpgradeStrategy extends BatteryUpgradeStrategy
                     offset++;
                     sleep(500);
                     result = deviceIoAction.read();
-                    if (result != null && result.length > 0)
+                    if (result != null && result.length > 6 && result[4] == (byte) 0xF7 && result[5] == 0x00)
                     {
                         onUpgradeProgress.onUpgrade(address, BatteryUpgradeStatus.WRITE_DATA, "发送" + sn + "条成功", sn, totalFrameSize);
                     } else
                     {
-                        onUpgradeProgress.onUpgrade(address, BatteryUpgradeStatus.FAILED, "发送" + sn + "条失败", sn, totalFrameSize);
+                        onUpgradeProgress.onUpgrade(address,
+                                BatteryUpgradeStatus.FAILED,
+                                "发送" + sn + "条失败" + StringFormatHelper.getInstance().toHexString(result)
+                                , sn, totalFrameSize);
                         return;
                     }
                 }
@@ -294,17 +311,20 @@ public class JieMinKeBatteryUpgradeStrategy extends BatteryUpgradeStrategy
                     lastData[++end] = 0x0D;
                     lastData[++end] = 0x0A;
 
-                    System.out.println("最后一针写："+StringFormatHelper.getInstance().toHexString(lastData));
+                    System.out.println("最后一针写：" + StringFormatHelper.getInstance().toHexString(lastData));
                     deviceIoAction.write(lastData);
                     sleep(5000);
                     result = deviceIoAction.read();
-                    System.out.println("最后一针读："+StringFormatHelper.getInstance().toHexString(result));
-                    if (result != null && result.length > 0)
+                    System.out.println("最后一针读：" + StringFormatHelper.getInstance().toHexString(result));
+                    if (result != null && result.length > 6 && result[4] == (byte) 0xF7 && result[5] == 0x00)
                     {
                         onUpgradeProgress.onUpgrade(address, BatteryUpgradeStatus.WRITE_DATA, "发送" + sn + "条成功", sn, totalFrameSize);
                     } else
                     {
-                        onUpgradeProgress.onUpgrade(address, BatteryUpgradeStatus.FAILED, "发送" + sn + "条失败", sn, totalFrameSize);
+                        onUpgradeProgress.onUpgrade(address,
+                                BatteryUpgradeStatus.FAILED,
+                                "发送" + sn + "条失败" + StringFormatHelper.getInstance().toHexString(result)
+                                , sn, totalFrameSize);
                         return;
                     }
                 }
@@ -313,12 +333,12 @@ public class JieMinKeBatteryUpgradeStrategy extends BatteryUpgradeStrategy
                 activationBMS[6] = (byte) (sum & 0xFF);
                 activationBMS[7] = (byte) (sum >> 8 & 0xFF);
                 onUpgradeProgress.onUpgrade(address, BatteryUpgradeStatus.ACTION_BMS, "开始激活...", totalFrameSize, totalFrameSize);
-                System.out.println("激活写："+StringFormatHelper.getInstance().toHexString(activationBMS));
+                System.out.println("激活写：" + StringFormatHelper.getInstance().toHexString(activationBMS));
                 deviceIoAction.write(activationBMS);
                 sleep(100);
                 result = deviceIoAction.read();
-                System.out.println("激活读："+StringFormatHelper.getInstance().toHexString(result));
-                if (result != null && result.length > 0)
+                System.out.println("激活读：" + StringFormatHelper.getInstance().toHexString(result));
+                if (result != null && result.length > 6 && result[4] == (byte) 0xF4 && result[5] == 0x00)
                 {
                     onUpgradeProgress.onUpgrade(address, BatteryUpgradeStatus.SUCCESSED, "激活成功", totalFrameSize, totalFrameSize);
                 } else

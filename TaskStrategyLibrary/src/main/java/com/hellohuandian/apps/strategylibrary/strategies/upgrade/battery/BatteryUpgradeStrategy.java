@@ -1,14 +1,14 @@
 package com.hellohuandian.apps.strategylibrary.strategies.upgrade.battery;
 
 import com.hellohuandian.apps.controllerlibrary.DeviceIoAction;
-import com.hellohuandian.apps.strategylibrary.strategies._base.BaseStrategy;
+import com.hellohuandian.apps.strategylibrary.strategies._base.NodeStrategy;
 
 /**
  * Author:      Lee Yeung
  * Create Date: 2019-09-04
  * Description: 电池升级策略
  */
-public abstract class BatteryUpgradeStrategy extends BaseStrategy
+public abstract class BatteryUpgradeStrategy extends NodeStrategy
 {
     protected final String filePath;
 
@@ -37,5 +37,7 @@ public abstract class BatteryUpgradeStrategy extends BaseStrategy
     public void execute(DeviceIoAction deviceIoAction)
     {
         upgrade(deviceIoAction, onUpgradeProgress);
+        // TODO: 2019-10-10 升级完成之后执行下一个策略
+        nextCall();
     }
 }

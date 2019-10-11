@@ -21,6 +21,7 @@ import androidx.core.util.Consumer;
  */
 final class SerialPortDispatcher extends TaskDispatcher<TaskStrategy>
 {
+    private int sn;
     private volatile boolean isLoop;
     private static final SerialPortDispatcher SERIAL_PORT_DISPATCHER = new SerialPortDispatcher();
     private final ArrayList<TaskStrategy> watchList = new ArrayList<>();
@@ -39,46 +40,46 @@ final class SerialPortDispatcher extends TaskDispatcher<TaskStrategy>
     {
         if (!isLoop)
         {
-            isLoop = true;
-            new Thread(new Runnable()
+            synchronized (this)
             {
-                @Override
-                public void run()
+                if (!isLoop)
                 {
-                    while (isLoop)
+                    isLoop = true;
+                    Thread serialPortDispatcherThread = new Thread(new Runnable()
                     {
-                        TaskStrategy ts = poll();
-                        if (ts != null)
+                        @Override
+                        public void run()
                         {
-                            dispatch(ts);
-                        } else
-                        {
-                            // TODO: 2019-09-16 执行485观察策略
-                            watch();
+                            while (isLoop)
+                            {
+                                TaskStrategy ts = poll();
+                                if (ts != null)
+                                {
+                                    execute(ts);
+                                } else
+                                {
+                                    if (watchList.isEmpty())
+                                    {
+                                        // TODO: 2019-10-10 针对在can通讯下进行电池升级任务，任务结束后，队列没有新任务，同时没有观察策略，就执行停止操作
+                                        stop();
+                                    } else
+                                    {
+                                        // TODO: 2019-09-16 执行485观察策略
+                                        watch();
+                                    }
+                                }
+                            }
                         }
-                    }
+                    });
+                    serialPortDispatcherThread.setName("Thread-SerialPortDispatcher");
+                    serialPortDispatcherThread.start();
+                    System.out.println("串口分发线程启动isLoop：" + isLoop);
                 }
-            }).start();
+            }
         }
     }
 
-    @Override
-    protected void stop()
-    {
-        if (isLoop)
-        {
-            isLoop = false;
-        }
-    }
-
-    @Override
-    protected void watch(TaskStrategy taskStrategy)
-    {
-        watchList.add(taskStrategy);
-    }
-
-    @Override
-    protected void dispatch(final TaskStrategy taskStrategy)
+    private void execute(final TaskStrategy taskStrategy)
     {
         if (taskStrategy != null)
         {
@@ -93,7 +94,34 @@ final class SerialPortDispatcher extends TaskDispatcher<TaskStrategy>
         }
     }
 
-    private int sn;
+    @Override
+    protected void stop()
+    {
+        if (isLoop)
+        {
+            isLoop = false;
+            System.out.println("串口分发线程停止isLoop：" + isLoop);
+        }
+    }
+
+    @Override
+    protected void watch(TaskStrategy taskStrategy)
+    {
+        watchList.add(taskStrategy);
+    }
+
+    @Override
+    protected void dispatch(final TaskStrategy taskStrategy)
+    {
+        if (taskStrategy != null)
+        {
+            if (!isLoop)
+            {
+                start();
+            }
+            add(taskStrategy);
+        }
+    }
 
     private void watch()
     {
@@ -115,10 +143,10 @@ final class SerialPortDispatcher extends TaskDispatcher<TaskStrategy>
         // TODO: 2019-09-18 测试升级
         //        BatteryUpgradeStrategy batteryUpgradeStrategy = new JieMinKeBatteryUpgradeStrategy((byte) 0x05, "/sdcard" +
         //                "/HelloBMS19S_HW0101_FW0161_CRC399D90C3_BT00000000.bin");
-//        BatteryUpgradeStrategy batteryUpgradeStrategy = new NuoWanBatteryUpgradeStrategy((byte) 0x05, "/sdcard" +
-//                "/
+        //        BatteryUpgradeStrategy batteryUpgradeStrategy = new NuoWanBatteryUpgradeStrategy((byte) 0x05, "/sdcard" +
+        //                "/
         BatteryUpgradeStrategy batteryUpgradeStrategy = new JieMinKeBatteryUpgradeStrategy((byte) 0x05, "/sdcard/Download" +
-                "/HelloBMS19S_HW0101_FW0158_CRCBED5F9B8_BT00000000.bin");
+                "/HelloBMS19S_HW0101_FW0164_CRCDBE1851D.bin");
 
         batteryUpgradeStrategy.setOnUpgradeProgress(new OnUpgradeProgress()
         {
