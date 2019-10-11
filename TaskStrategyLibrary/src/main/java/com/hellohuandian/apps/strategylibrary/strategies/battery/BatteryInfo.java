@@ -2,17 +2,17 @@ package com.hellohuandian.apps.strategylibrary.strategies.battery;
 
 import android.text.TextUtils;
 
+import com.hellohuandian.apps.strategylibrary.strategies._data.BatteryData;
+
 import androidx.annotation.NonNull;
 
 /**
  * Author:      Lee Yeung
- * Create Date: 2019-09-17
- * Description: 电池数据包信息类
+ * Create Date: 2019-10-11
+ * Description: 电池数据信息类
  */
-public class BatteryData
+public class BatteryInfo extends BatteryData
 {
-    public final byte address;
-
     public byte doorLockStatus;
     public byte electricMachineStatus;
     public float batteryTemperature;
@@ -58,9 +58,15 @@ public class BatteryData
     public String _month;
     public String _day;
 
-    public BatteryData(byte address)
+    public BatteryInfo(byte address)
     {
-        this.address = address;
+        super(address);
+    }
+
+    @Override
+    public int getBatteryDataType()
+    {
+        return BatteryDataType.INFO;
     }
 
     void setDoorLockStatus(byte doorLockStatus)

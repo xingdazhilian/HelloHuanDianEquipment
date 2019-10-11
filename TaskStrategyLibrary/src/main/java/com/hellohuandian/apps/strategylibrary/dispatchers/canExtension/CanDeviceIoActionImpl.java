@@ -1,7 +1,6 @@
 package com.hellohuandian.apps.strategylibrary.dispatchers.canExtension;
 
 import com.hellohuandian.apps.controllerlibrary.DeviceIoAction;
-import com.hellohuandian.apps.utillibrary.StringFormatHelper;
 
 import java.io.IOException;
 import java.util.concurrent.ConcurrentHashMap;
@@ -49,7 +48,7 @@ public final class CanDeviceIoActionImpl extends ConcurrentHashMap<Integer, Cons
             final int frameId = (result[3] & 0xFF) << 24 | (result[2] & 0xFF) << 16 | (result[1] & 0xFF) << 8 | result[0];
             // TODO: 2019-09-24 初始化结果ID为帧ID
             int resultId = frameId;
-//            System.out.println("结果：" + StringFormatHelper.getInstance().toHexString(result));
+            //            System.out.println("结果：" + StringFormatHelper.getInstance().toHexString(result));
             if (frameId >= 0x01 && frameId <= 0x0D)
             {
                 //来自控制设备地址

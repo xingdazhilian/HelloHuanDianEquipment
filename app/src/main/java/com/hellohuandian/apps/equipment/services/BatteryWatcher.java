@@ -1,6 +1,6 @@
 package com.hellohuandian.apps.equipment.services;
 
-import com.hellohuandian.apps.strategylibrary.strategies.battery.BatteryData;
+import com.hellohuandian.apps.strategylibrary.strategies._data.BatteryData;
 
 /**
  * Author:      Lee Yeung

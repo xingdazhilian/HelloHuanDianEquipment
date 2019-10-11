@@ -16,6 +16,7 @@ import com.hellohuandian.apps.strategylibrary.strategies.activation.Action485;
 import com.hellohuandian.apps.strategylibrary.strategies.pushRod.OnPushAction;
 import com.hellohuandian.apps.strategylibrary.strategies.pushRod.PushRodStrategy;
 import com.hellohuandian.apps.strategylibrary.strategies.relay.RelayCloseStrategy;
+import com.hellohuandian.apps.strategylibrary.strategies.upgrade.battery.BatteryUpgradeInfo;
 import com.hellohuandian.apps.strategylibrary.strategies.upgrade.battery.BatteryUpgradeStrategy;
 import com.hellohuandian.apps.strategylibrary.strategies.upgrade.battery.JieMinKe.JieMinKeBatteryUpgradeStrategy;
 import com.hellohuandian.apps.strategylibrary.strategies.upgrade.battery.OnUpgradeProgress;
@@ -44,6 +45,8 @@ public class MonitorFragment extends AppBaseFragment
         pushRod(address);
     };
 
+    private BatteryViewModel batteryViewModel;
+
     @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState)
     {
@@ -56,7 +59,7 @@ public class MonitorFragment extends AppBaseFragment
         rvMonitor.addItemDecoration(new SimpleItemDecoration());
         rvMonitor.setAdapter(monitorAdapter);
 
-        BatteryViewModel batteryViewModel = ViewModelProviders.of(getActivity()).get(BatteryViewModel.class);
+        batteryViewModel = ViewModelProviders.of(getActivity()).get(BatteryViewModel.class);
         if (batteryViewModel.batteryMonitorLiveData != null)
         {
             batteryViewModel.batteryMonitorLiveData.observe(this, batteryData -> {
@@ -66,8 +69,6 @@ public class MonitorFragment extends AppBaseFragment
                 }
             });
         }
-
-        testBatteryUpgradeStrategy();
     }
 
     @Override
@@ -106,12 +107,14 @@ public class MonitorFragment extends AppBaseFragment
             @Override
             public void onPushSuccessed(byte address)
             {
+                System.out.println("推杆成功");
                 appDialog.dismiss();
             }
 
             @Override
             public void onPushFailed(byte address)
             {
+                System.out.println("推杆失败");
                 appDialog.dismiss();
             }
         });
@@ -157,16 +160,21 @@ public class MonitorFragment extends AppBaseFragment
                 batteryUpgradeStrategy.setOnUpgradeProgress(new OnUpgradeProgress()
                 {
                     @Override
-                    public void onUpgrade(byte mapAddress, byte statusFlag, String statusInfo, long currentPregress, long totalPregress)
+                    public void onUpgrade(BatteryUpgradeInfo batteryUpgradeInfo)
                     {
-                        System.out.println("mapAddress:" + mapAddress + Thread.currentThread().getName());
-                        System.out.println("statusFlag:" + statusFlag);
-                        System.out.println("statusInfo:" + statusInfo);
-                        System.out.println("currentPregress:" + currentPregress);
-                        System.out.println("totalPregress:" + totalPregress);
-                        if (totalPregress > 0)
+//                        System.out.println("mapAddress:" + batteryUpgradeInfo.address);
+//                        System.out.println("statusFlag:" + batteryUpgradeInfo.statusFlag);
+//                        System.out.println("statusInfo:" + batteryUpgradeInfo.statusInfo);
+//                        System.out.println("currentPregress:" + batteryUpgradeInfo.currentPregress);
+//                        System.out.println("totalPregress:" + batteryUpgradeInfo.totalPregress);
+//                        if (batteryUpgradeInfo.totalPregress > 0)
+//                        {
+//                            System.out.println((int) ((float) batteryUpgradeInfo.currentPregress / batteryUpgradeInfo.totalPregress * 100) + "%");
+//                        }
+
+                        if (batteryViewModel != null)
                         {
-                            System.out.println((int) ((float) currentPregress / totalPregress * 100) + "%");
+                            batteryViewModel.batteryMonitorLiveData.postValue(batteryUpgradeInfo);
                         }
                     }
                 });
@@ -178,7 +186,6 @@ public class MonitorFragment extends AppBaseFragment
                             @Override
                             public void accept(NodeStrategy nodeStrategy)
                             {
-                                System.out.println("nodeStrategy:" + nodeStrategy.toString());
                                 DispatcherManager.getInstance().dispatch(nodeStrategy);
                             }
                         });

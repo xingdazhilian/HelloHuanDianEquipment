@@ -7,5 +7,5 @@ package com.hellohuandian.apps.strategylibrary.strategies.upgrade.battery;
  */
 public interface OnUpgradeProgress
 {
-    void onUpgrade(byte mapAddress, byte statusFlag, String statusInfo, long currentPregress, long totalPregress);
+    void onUpgrade(BatteryUpgradeInfo batteryUpgradeInfo);
 }

@@ -5,7 +5,7 @@ import com.hellohuandian.apps.controllerlibrary.DeviceIoAction;
 import com.hellohuandian.apps.strategylibrary.dispatchers.canExtension.CanDeviceIoActionImpl;
 import com.hellohuandian.apps.strategylibrary.strategies._base.NodeStrategy;
 import com.hellohuandian.apps.strategylibrary.strategies._base.TaskStrategy;
-import com.hellohuandian.apps.strategylibrary.strategies.battery.BatteryData;
+import com.hellohuandian.apps.strategylibrary.strategies._data.BatteryData;
 import com.hellohuandian.apps.strategylibrary.strategies.battery.BatteryDataStrategy;
 import com.hellohuandian.apps.strategylibrary.strategies.battery.BatteryInfoTable;
 import com.hellohuandian.apps.strategylibrary.strategies.battery.OnBatteryDataUpdate;

@@ -1,7 +1,7 @@
 package com.hellohuandian.apps.strategylibrary.monitor;
 
 import com.hellohuandian.apps.strategylibrary.dispatchers.DispatcherManager;
-import com.hellohuandian.apps.strategylibrary.strategies.battery.BatteryData;
+import com.hellohuandian.apps.strategylibrary.strategies._data.BatteryData;
 import com.hellohuandian.apps.strategylibrary.strategies.battery.OnBatteryDataUpdate;
 
 /**

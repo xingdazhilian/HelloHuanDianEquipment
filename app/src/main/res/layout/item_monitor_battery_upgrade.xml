@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/card_background"
+    android:padding="10dp"
+    >
+
+    <TextView
+        android:id="@+id/tv_position"
+        android:layout_width="150dp"
+        android:layout_height="wrap_content"
+        android:layout_marginRight="16dp"
+        android:gravity="center"
+        android:paddingTop="10dp"
+        android:paddingBottom="10dp"
+        android:text="--"
+        android:textColor="@color/colorBlack"
+        android:textSize="50sp"
+        android:textStyle="bold"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBaseline="@+id/tv_position"
+        android:layout_toRightOf="@+id/tv_position"
+        android:text="电池升级中..."
+        android:textColor="@color/colorOrange"
+        android:textSize="30sp"/>
+
+    <ProgressBar
+        android:id="@+id/pb_statusBar"
+        style="?android:attr/progressBarStyleHorizontal"
+        android:layout_width="match_parent"
+        android:layout_height="20dp"
+        android:layout_below="@+id/tv_position"
+        android:layout_marginLeft="50dp"
+        android:layout_marginTop="10dp"
+        android:layout_toLeftOf="@+id/tv_percent"
+        android:max="100"
+        android:progressDrawable="@drawable/drawable_battery_upgrade_progress"
+        >
+    </ProgressBar>
+
+    <TextView
+        android:id="@+id/tv_percent"
+        android:layout_width="80dp"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/tv_position"
+        android:layout_alignParentRight="true"
+        android:layout_marginRight="20dp"
+        android:gravity="right"
+        android:text="0%"
+        android:textColor="@color/colorBlack"
+        android:textSize="26sp"
+        />
+
+    <TextView
+        android:id="@+id/tv_statusInfo"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/tv_percent"
+        android:layout_alignLeft="@+id/pb_statusBar"
+        android:layout_alignRight="@+id/tv_percent"
+        android:layout_marginTop="10dp"
+        android:layout_marginRight="20dp"
+        android:textColor="@color/colorBlack"
+        android:textSize="20sp"
+        />
+
+</RelativeLayout>

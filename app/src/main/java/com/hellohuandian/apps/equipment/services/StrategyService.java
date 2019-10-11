@@ -8,9 +8,8 @@ import android.os.Message;
 
 import com.hellohuandian.apps.equipment.modules.config.MachineVersionConfig;
 import com.hellohuandian.apps.strategylibrary._core.ScManager;
-import com.hellohuandian.apps.strategylibrary.config.MachineVersion;
 import com.hellohuandian.apps.strategylibrary.monitor.BatteriesMonitor;
-import com.hellohuandian.apps.strategylibrary.strategies.battery.BatteryData;
+import com.hellohuandian.apps.strategylibrary.strategies._data.BatteryData;
 import com.hellohuandian.apps.strategylibrary.strategies.battery.OnBatteryDataUpdate;
 
 import java.util.HashSet;

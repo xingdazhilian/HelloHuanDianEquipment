@@ -4,11 +4,14 @@ import android.content.Context;
 import android.text.TextUtils;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.hellohuandian.apps.equipment.R;
 import com.hellohuandian.apps.equipment._base.adapter.BaseRecycleAdapter;
-import com.hellohuandian.apps.strategylibrary.strategies.battery.BatteryData;
+import com.hellohuandian.apps.strategylibrary.strategies._data.BatteryData;
+import com.hellohuandian.apps.strategylibrary.strategies.battery.BatteryInfo;
+import com.hellohuandian.apps.strategylibrary.strategies.upgrade.battery.BatteryUpgradeInfo;
 
 import java.util.HashMap;
 
@@ -22,7 +25,7 @@ import butterknife.ButterKnife;
  * Create Date: 2019-09-29
  * Description:
  */
-public class MonitorAdapter extends BaseRecycleAdapter<BatteryData, MonitorAdapter.ViewHolder>
+public class MonitorAdapter extends BaseRecycleAdapter<BatteryData, BaseRecycleAdapter.BaseViewHolder<BatteryData>>
 {
     private final HashMap<Integer, Integer> indexMap = new HashMap<>();
     private int totalRowCount;//总行
@@ -79,9 +82,23 @@ public class MonitorAdapter extends BaseRecycleAdapter<BatteryData, MonitorAdapt
 
     @NonNull
     @Override
-    public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType)
+    public BaseViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType)
     {
-        return new ViewHolder(initItemView(R.layout.item_monitor_battery_card, parent));
+        switch (viewType)
+        {
+            case BatteryData.BatteryDataType.UPGRADE:
+                return new BatteryUpgradeViewHolder(initItemView(R.layout.item_monitor_battery_upgrade, parent));
+            case BatteryData.BatteryDataType.INFO:
+            default:
+                return new BatteryInfoViewHolder(initItemView(R.layout.item_monitor_battery_card, parent));
+        }
+    }
+
+    @Override
+    public int getItemViewType(int position)
+    {
+        BatteryData batteryData = getItem(position);
+        return batteryData != null ? batteryData.getBatteryDataType() : super.getItemViewType(position);
     }
 
     private View initItemView(@LayoutRes int itemId, @NonNull ViewGroup parent)
@@ -93,7 +110,6 @@ public class MonitorAdapter extends BaseRecycleAdapter<BatteryData, MonitorAdapt
             ViewGroup.MarginLayoutParams marginLayoutParams = (ViewGroup.MarginLayoutParams) layoutParams;
             if (totalRowCount > 0 && spanCount > 0)
             {
-                // TODO: 2019-10-10 动态计算高度
                 marginLayoutParams.height = (parent.getMeasuredHeight()
                         - verticalSpacing * (totalRowCount - 1)) / totalRowCount;
             }
@@ -101,7 +117,7 @@ public class MonitorAdapter extends BaseRecycleAdapter<BatteryData, MonitorAdapt
         return itemView;
     }
 
-    class ViewHolder extends BaseRecycleAdapter.BaseViewHolder<BatteryData> implements View.OnClickListener
+    class BatteryInfoViewHolder extends BaseViewHolder<BatteryData> implements View.OnClickListener
     {
         @BindView(R.id.tv_position)
         TextView tvPosition;
@@ -112,9 +128,9 @@ public class MonitorAdapter extends BaseRecycleAdapter<BatteryData, MonitorAdapt
         @BindView(R.id.tv_batterySimpleInfo)
         TextView tvBatterySimpleInfo;
 
-        private BatteryData model;
+        private BatteryInfo modelBatteryInfo;
 
-        public ViewHolder(@NonNull View itemView)
+        public BatteryInfoViewHolder(@NonNull View itemView)
         {
             super(itemView);
             ButterKnife.bind(this, itemView);
@@ -124,23 +140,62 @@ public class MonitorAdapter extends BaseRecycleAdapter<BatteryData, MonitorAdapt
         @Override
         protected void update(BatteryData model, int position)
         {
-            this.model = model;
-
-            tvPosition.setText(String.format("%02d", position + 1));
-            tvId.setText(!TextUtils.isEmpty(model.batteryIdInfo) ? model.batteryIdInfo : "");
-            tvBatterySimpleInfo.setText(model.str_batteryTotalVoltage + "\n"
-                    + model.str_relativeCapatityPercent + "\n"
-                    + model.str_realTimeCurrent + "\n"
-                    + model.str_batteryTemperature + "\n"
-                    + "sv" + model.softwareVersion + ",hv" + model.hardwareVersion);
+            if (model instanceof BatteryInfo)
+            {
+                modelBatteryInfo = (BatteryInfo) model;
+                tvPosition.setText(String.format("%02d", position + 1));
+                tvId.setText(!TextUtils.isEmpty(modelBatteryInfo.batteryIdInfo) ? modelBatteryInfo.batteryIdInfo : "");
+                tvBatterySimpleInfo.setText(modelBatteryInfo.str_batteryTotalVoltage + "\n"
+                        + modelBatteryInfo.str_relativeCapatityPercent + "\n"
+                        + modelBatteryInfo.str_realTimeCurrent + "\n"
+                        + modelBatteryInfo.str_batteryTemperature + "\n"
+                        + "sv" + modelBatteryInfo.softwareVersion + ",hv" + modelBatteryInfo.hardwareVersion);
+            }
         }
 
         @Override
         public void onClick(View v)
         {
-            if (onOpenDoorAction != null)
+            if (onOpenDoorAction != null && modelBatteryInfo != null)
             {
-                onOpenDoorAction.onOpen(model.address);
+                onOpenDoorAction.onOpen(modelBatteryInfo.address);
+            }
+        }
+    }
+
+    class BatteryUpgradeViewHolder extends BaseViewHolder<BatteryData>
+    {
+        @BindView(R.id.tv_position)
+        TextView tvPosition;
+        @BindView(R.id.pb_statusBar)
+        ProgressBar pbStatusBar;
+        @BindView(R.id.tv_percent)
+        TextView tvPercent;
+        @BindView(R.id.tv_statusInfo)
+        TextView tvStatusInfo;
+
+        private BatteryUpgradeInfo modelBatteryUpgradeInfo;
+
+        public BatteryUpgradeViewHolder(@NonNull View itemView)
+        {
+            super(itemView);
+            ButterKnife.bind(this, itemView);
+        }
+
+        @Override
+        protected void update(BatteryData model, int position)
+        {
+            if (model instanceof BatteryUpgradeInfo)
+            {
+                tvPosition.setText(String.format("%02d", position + 1) );
+                modelBatteryUpgradeInfo = (BatteryUpgradeInfo) model;
+                if (modelBatteryUpgradeInfo.totalPregress > 0)
+                {
+                    int percent = (int) ((float) modelBatteryUpgradeInfo.currentPregress / modelBatteryUpgradeInfo.totalPregress * 100);
+                    tvPercent.setText(percent + "%");
+                    pbStatusBar.setProgress(percent);
+                }
+                tvStatusInfo.setText(modelBatteryUpgradeInfo.statusInfo);
             }
         }
     }

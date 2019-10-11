@@ -29,7 +29,14 @@ public class LaunchActivity extends AppBaseActivity
     {
         super.onResume();
 
-        new Handler().postDelayed(() -> startActivity(new Intent(LaunchActivity.this, MainActivity.class)), 3000);
+        new Handler().postDelayed(new Runnable()
+        {
+            @Override
+            public void run()
+            {
+                LaunchActivity.this.startActivity(new Intent(LaunchActivity.this, MainActivity.class));
+                finish();
+            }
+        }, 3000);
     }
-
 }

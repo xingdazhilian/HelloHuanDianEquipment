@@ -2,7 +2,7 @@ package com.hellohuandian.apps.strategylibrary.dispatchers;
 
 import com.hellohuandian.apps.strategylibrary.config.MachineVersion;
 import com.hellohuandian.apps.strategylibrary.strategies._base.TaskStrategy;
-import com.hellohuandian.apps.strategylibrary.strategies.battery.BatteryData;
+import com.hellohuandian.apps.strategylibrary.strategies._data.BatteryData;
 import com.hellohuandian.apps.strategylibrary.strategies.battery.BatteryDataStrategy;
 import com.hellohuandian.apps.strategylibrary.strategies.battery.BatteryInfoTable;
 import com.hellohuandian.apps.strategylibrary.strategies.battery.OnBatteryDataUpdate;

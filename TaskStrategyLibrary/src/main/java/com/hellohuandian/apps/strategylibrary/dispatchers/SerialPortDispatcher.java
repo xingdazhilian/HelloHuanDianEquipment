@@ -6,6 +6,7 @@ import com.hellohuandian.apps.strategylibrary.strategies._base.TaskStrategy;
 import com.hellohuandian.apps.strategylibrary.strategies.battery.BatteryDataStrategy;
 import com.hellohuandian.apps.strategylibrary.strategies.pushRod.OnPushAction;
 import com.hellohuandian.apps.strategylibrary.strategies.pushRod.PushRodStrategy;
+import com.hellohuandian.apps.strategylibrary.strategies.upgrade.battery.BatteryUpgradeInfo;
 import com.hellohuandian.apps.strategylibrary.strategies.upgrade.battery.BatteryUpgradeStrategy;
 import com.hellohuandian.apps.strategylibrary.strategies.upgrade.battery.JieMinKe.JieMinKeBatteryUpgradeStrategy;
 import com.hellohuandian.apps.strategylibrary.strategies.upgrade.battery.OnUpgradeProgress;
@@ -146,21 +147,21 @@ final class SerialPortDispatcher extends TaskDispatcher<TaskStrategy>
         //        BatteryUpgradeStrategy batteryUpgradeStrategy = new NuoWanBatteryUpgradeStrategy((byte) 0x05, "/sdcard" +
         //                "/
         BatteryUpgradeStrategy batteryUpgradeStrategy = new JieMinKeBatteryUpgradeStrategy((byte) 0x05, "/sdcard/Download" +
-                "/HelloBMS19S_HW0101_FW0164_CRCDBE1851D.bin");
+                "/HelloBMS19S_HW0101_FW0163_CRC62069E48.bin");
 
         batteryUpgradeStrategy.setOnUpgradeProgress(new OnUpgradeProgress()
         {
             @Override
-            public void onUpgrade(byte mapAddress, byte statusFlag, String statusInfo, long currentPregress, long totalPregress)
+            public void onUpgrade(BatteryUpgradeInfo batteryUpgradeInfo)
             {
-                System.out.println("mapAddress:" + mapAddress);
-                System.out.println("statusFlag:" + statusFlag);
-                System.out.println("statusInfo:" + statusInfo);
-                System.out.println("currentPregress:" + currentPregress);
-                System.out.println("totalPregress:" + totalPregress);
-                if (totalPregress > 0)
+                System.out.println("mapAddress:" + batteryUpgradeInfo.address);
+                System.out.println("statusFlag:" + batteryUpgradeInfo.statusFlag);
+                System.out.println("statusInfo:" + batteryUpgradeInfo.statusInfo);
+                System.out.println("currentPregress:" + batteryUpgradeInfo.currentPregress);
+                System.out.println("totalPregress:" + batteryUpgradeInfo.totalPregress);
+                if (batteryUpgradeInfo.totalPregress > 0)
                 {
-                    System.out.println((int) ((float) currentPregress / totalPregress * 100) + "%");
+                    System.out.println((int) ((float) batteryUpgradeInfo.currentPregress / batteryUpgradeInfo.totalPregress * 100) + "%");
                 }
             }
         });
