@@ -49,10 +49,9 @@ public final class StringFormatHelper
                 stringBuilder.delete(0, stringBuilder.length());
             }
 
-            final int len = data.length;
-            if (data != null && len > 0)
+            if (data != null && data.length > 0)
             {
-                for (int i = 0; i < len; i++)
+                for (int i = 0, len = data.length; i < len; i++)
                 {
                     String hex = Integer.toHexString(data[i] & 0xFF);
                     if (hex.length() == 1)
