@@ -4,6 +4,9 @@ import com.hellohuandian.apps.strategylibrary.dispatchers.DispatcherManager;
 import com.hellohuandian.apps.strategylibrary.strategies._data.BatteryData;
 import com.hellohuandian.apps.strategylibrary.strategies.battery.OnBatteryDataUpdate;
 
+import java.util.HashSet;
+import java.util.Iterator;
+
 /**
  * Author:      Lee Yeung
  * Create Date: 2019-09-28
@@ -11,21 +14,31 @@ import com.hellohuandian.apps.strategylibrary.strategies.battery.OnBatteryDataUp
  */
 public final class BatteriesMonitor
 {
-    private OnBatteryDataUpdate onBatteryDataUpdate;
+    private final HashSet<OnBatteryDataUpdate> onBatteryDataUpdateHashSet = new HashSet<>();
+    private volatile boolean isRun;
 
     private static final BatteriesMonitor BATTERIES_MONITOR = new BatteriesMonitor();
 
     private BatteriesMonitor()
     {
+        isRun = true;
         DispatcherManager.getInstance().setOnBatteryDataUpdate(new OnBatteryDataUpdate()
         {
             @Override
             public void onUpdate(BatteryData batteryData)
             {
                 // TODO: 2019-09-28 回调给上层
-                if (onBatteryDataUpdate != null)
+                if (isRun && onBatteryDataUpdateHashSet != null)
                 {
-                    onBatteryDataUpdate.onUpdate(batteryData);
+                    Iterator<OnBatteryDataUpdate> onBatteryDataUpdateIterator = onBatteryDataUpdateHashSet.iterator();
+                    while (onBatteryDataUpdateIterator.hasNext())
+                    {
+                        OnBatteryDataUpdate onBatteryDataUpdate = onBatteryDataUpdateIterator.next();
+                        if (onBatteryDataUpdate != null)
+                        {
+                            onBatteryDataUpdate.onUpdate(batteryData);
+                        }
+                    }
                 }
             }
         });
@@ -36,8 +49,17 @@ public final class BatteriesMonitor
         return BATTERIES_MONITOR;
     }
 
-    public void setOnBatteryDataUpdate(OnBatteryDataUpdate onBatteryDataUpdate)
+    public void addOnBatteryDataUpdate(OnBatteryDataUpdate onBatteryDataUpdate)
     {
-        this.onBatteryDataUpdate = onBatteryDataUpdate;
+        if (onBatteryDataUpdate != null)
+        {
+            onBatteryDataUpdateHashSet.add(onBatteryDataUpdate);
+        }
+    }
+
+    public void stop()
+    {
+        isRun = false;
+        onBatteryDataUpdateHashSet.clear();
     }
 }

@@ -26,6 +26,7 @@ final class SerialPortDispatcher extends TaskDispatcher<TaskStrategy>
     private volatile boolean isLoop;
     private static final SerialPortDispatcher SERIAL_PORT_DISPATCHER = new SerialPortDispatcher();
     private final ArrayList<TaskStrategy> watchList = new ArrayList<>();
+    private Thread serialPortDispatcherThread;
 
     private SerialPortDispatcher()
     {
@@ -46,7 +47,7 @@ final class SerialPortDispatcher extends TaskDispatcher<TaskStrategy>
                 if (!isLoop)
                 {
                     isLoop = true;
-                    Thread serialPortDispatcherThread = new Thread(new Runnable()
+                    serialPortDispatcherThread = new Thread(new Runnable()
                     {
                         @Override
                         public void run()
@@ -102,6 +103,23 @@ final class SerialPortDispatcher extends TaskDispatcher<TaskStrategy>
         {
             isLoop = false;
             System.out.println("串口分发线程停止isLoop：" + isLoop);
+            SerialPortDeviceController.getInstance().stop();
+
+            if (serialPortDispatcherThread != null)
+            {
+                if (serialPortDispatcherThread.isAlive())
+                {
+                    try
+                    {
+                        serialPortDispatcherThread.interrupt();
+                    }
+                    catch (Exception e)
+                    {
+                        e.printStackTrace();
+                    }
+                }
+                serialPortDispatcherThread = null;
+            }
         }
     }
 

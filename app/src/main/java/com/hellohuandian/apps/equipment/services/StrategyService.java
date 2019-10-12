@@ -32,7 +32,7 @@ public class StrategyService extends Service implements OnBatteryDataUpdate
         {
             if (msg.obj instanceof BatteryData)
             {
-//                System.out.println("电池数据：" + msg.obj.toString());
+                //                System.out.println("电池数据：" + msg.obj.toString());
                 BatteryWatcherRegisters.onWatch(((BatteryData) msg.obj));
             }
         }
@@ -49,9 +49,17 @@ public class StrategyService extends Service implements OnBatteryDataUpdate
     public void onCreate()
     {
         super.onCreate();
-        BatteriesMonitor.getInstance().setOnBatteryDataUpdate(this);
+        BatteriesMonitor.getInstance().addOnBatteryDataUpdate(this);
         ScManager.getInstance().init(MachineVersionConfig.getMachineVersion());
         ScManager.getInstance().start();
+    }
+
+    @Override
+    public void onDestroy()
+    {
+        super.onDestroy();
+        ScManager.getInstance().stop();
+        BatteriesMonitor.getInstance().stop();
     }
 
     @Override

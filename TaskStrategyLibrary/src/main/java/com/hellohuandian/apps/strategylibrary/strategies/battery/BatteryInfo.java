@@ -190,6 +190,7 @@ public class BatteryInfo extends BatteryData
         softwareVersion = 0;
         hardwareVersion = 0;
         str_controlPanelTemperature = "--°C";
+        batteryIdInfo = "";
     }
 
     @NonNull

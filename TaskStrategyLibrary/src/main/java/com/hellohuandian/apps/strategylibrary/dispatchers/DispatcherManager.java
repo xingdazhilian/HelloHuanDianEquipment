@@ -52,15 +52,14 @@ public final class DispatcherManager
         int size = 0;
         switch (version)
         {
-            case MachineVersion.SC_1:
+            case MachineVersion.SC_3:
                 startAddress = 0x01;
                 size = 12;
                 taskDispatcher = SerialPortDispatcher.getInstance();
                 // TODO: 2019-09-28 仓数地址1~12(0x01~0x0C)
                 break;
-            case MachineVersion.SC_2:
-            case MachineVersion.SC_3:
             case MachineVersion.SC_4:
+            case MachineVersion.SC_5:
                 startAddress = 0x05;
                 size = 9;
                 // TODO: 2019-09-28 仓数地址1~9(0x05~0x0D)

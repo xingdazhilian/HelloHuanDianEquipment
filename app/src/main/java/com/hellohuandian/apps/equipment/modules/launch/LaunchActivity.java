@@ -25,6 +25,12 @@ public class LaunchActivity extends AppBaseActivity
     }
 
     @Override
+    protected void onDestroy()
+    {
+        super.onDestroy();
+    }
+
+    @Override
     protected void onResume()
     {
         super.onResume();
@@ -34,8 +40,8 @@ public class LaunchActivity extends AppBaseActivity
             @Override
             public void run()
             {
-                LaunchActivity.this.startActivity(new Intent(LaunchActivity.this, MainActivity.class));
                 finish();
+                LaunchActivity.this.startActivity(new Intent(LaunchActivity.this, MainActivity.class));
             }
         }, 3000);
     }

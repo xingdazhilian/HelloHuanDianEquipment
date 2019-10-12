@@ -1,12 +1,15 @@
 package com.hellohuandian.apps.equipment.modules.main.tabPages.monitor;
 
+import android.content.Intent;
 import android.os.Bundle;
+import android.view.View;
 
 import com.hellohuandian.apps.equipment.R;
 import com.hellohuandian.apps.equipment._base.fragments.AppBaseFragment;
 import com.hellohuandian.apps.equipment.modules.config.MachineVersionConfig;
 import com.hellohuandian.apps.equipment.modules.main.tabPages.monitor.adapter.MonitorAdapter;
 import com.hellohuandian.apps.equipment.modules.main.viewmodel.BatteryViewModel;
+import com.hellohuandian.apps.equipment.services.StrategyService;
 import com.hellohuandian.apps.equipment.widgets.SimpleItemDecoration;
 import com.hellohuandian.apps.equipment.widgets.dialog.AppDialog;
 import com.hellohuandian.apps.strategylibrary.config.MachineVersion;
@@ -27,19 +30,19 @@ import androidx.lifecycle.ViewModelProviders;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import butterknife.BindView;
+import butterknife.OnClick;
 
 /**
  * Author:      Lee Yeung
  * Create Date: 2019-09-29
  * Description:
  */
-public class MonitorFragment extends AppBaseFragment
+public class MonitorFragment extends AppBaseFragment implements View.OnClickListener
 {
     @BindView(R.id.rv_monitor)
     RecyclerView rvMonitor;
     private MonitorAdapter monitorAdapter;
     private AppDialog appDialog = new AppDialog(R.layout.layout_loading_dialog);
-
     private MonitorAdapter.OnOpenDoorAction onOpenDoorAction = address -> {
         // TODO: 2019-10-09 执行推杆操作
         pushRod(address);
@@ -69,6 +72,7 @@ public class MonitorFragment extends AppBaseFragment
                 }
             });
         }
+//        testBatteryUpgradeStrategy();
     }
 
     @Override
@@ -81,12 +85,11 @@ public class MonitorFragment extends AppBaseFragment
     {
         switch (version)
         {
-            case MachineVersion.SC_1:
+            case MachineVersion.SC_3:
                 monitorAdapter.setValues(4, 3, 10);
                 break;
-            case MachineVersion.SC_2:
-            case MachineVersion.SC_3:
             case MachineVersion.SC_4:
+            case MachineVersion.SC_5:
                 monitorAdapter.setValues(3, 3, 10);
                 break;
         }
@@ -121,12 +124,11 @@ public class MonitorFragment extends AppBaseFragment
 
         switch (MachineVersionConfig.getMachineVersion())
         {
-            case MachineVersion.SC_1:
+            case MachineVersion.SC_3:
                 pushNodeStrategy = pushRodStrategy;
                 break;
-            case MachineVersion.SC_2:
-            case MachineVersion.SC_3:
             case MachineVersion.SC_4:
+            case MachineVersion.SC_5:
                 pushNodeStrategy = pushRodStrategy.addPrevious(new RelayCloseStrategy((byte) (address - 0x05 + 0x15)));
                 break;
         }
@@ -140,6 +142,7 @@ public class MonitorFragment extends AppBaseFragment
 
     private void testBatteryUpgradeStrategy()
     {
+        // TODO: 2019-10-11 升级过程中其他控制操作必须暂停 
         new Thread(new Runnable()
         {
             @Override
@@ -162,16 +165,6 @@ public class MonitorFragment extends AppBaseFragment
                     @Override
                     public void onUpgrade(BatteryUpgradeInfo batteryUpgradeInfo)
                     {
-//                        System.out.println("mapAddress:" + batteryUpgradeInfo.address);
-//                        System.out.println("statusFlag:" + batteryUpgradeInfo.statusFlag);
-//                        System.out.println("statusInfo:" + batteryUpgradeInfo.statusInfo);
-//                        System.out.println("currentPregress:" + batteryUpgradeInfo.currentPregress);
-//                        System.out.println("totalPregress:" + batteryUpgradeInfo.totalPregress);
-//                        if (batteryUpgradeInfo.totalPregress > 0)
-//                        {
-//                            System.out.println((int) ((float) batteryUpgradeInfo.currentPregress / batteryUpgradeInfo.totalPregress * 100) + "%");
-//                        }
-
                         if (batteryViewModel != null)
                         {
                             batteryViewModel.batteryMonitorLiveData.postValue(batteryUpgradeInfo);
@@ -192,5 +185,18 @@ public class MonitorFragment extends AppBaseFragment
 
             }
         }).start();
+    }
+
+    @OnClick({R.id.tv_exitApp})
+    @Override
+    public void onClick(View v)
+    {
+        switch (v.getId())
+        {
+            case R.id.tv_exitApp:
+                getActivity().stopService(new Intent(getActivity(), StrategyService.class));
+                getActivity().finish();
+                break;
+        }
     }
 }

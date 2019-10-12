@@ -6,6 +6,8 @@
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
         <item name="colorAccent">@color/colorAccent</item>
+        <!--去掉窗口背景色，优化-->
+        <item name="android:windowBackground">@null</item>
     </style>
 
     <style name="AppDialog" parent="Theme.AppCompat.Light.Dialog">

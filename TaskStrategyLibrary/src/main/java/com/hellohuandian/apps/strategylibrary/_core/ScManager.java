@@ -9,7 +9,7 @@ import com.hellohuandian.apps.strategylibrary.dispatchers.DispatcherManager;
  * Description: SC是充电柜的缩写(来自文档)
  * 负责初始化串口和can通讯操作
  */
-public final class ScManager
+public final class ScManager extends FuncManager
 {
     private static final ScManager DISPATCHER_MANAGER = new ScManager();
 
@@ -27,11 +27,13 @@ public final class ScManager
         DispatcherManager.getInstance().init(version);
     }
 
+    @Override
     public void start()
     {
         DispatcherManager.getInstance().start();
     }
 
+    @Override
     public void stop()
     {
         DispatcherManager.getInstance().stop();

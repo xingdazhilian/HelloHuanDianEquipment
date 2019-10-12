@@ -20,7 +20,6 @@ public class MainActivity extends AppBaseActivity
     {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
         ViewModelProviders.of(this).get(BatteryViewModel.class);
         startService(new Intent(this, StrategyService.class));
     }

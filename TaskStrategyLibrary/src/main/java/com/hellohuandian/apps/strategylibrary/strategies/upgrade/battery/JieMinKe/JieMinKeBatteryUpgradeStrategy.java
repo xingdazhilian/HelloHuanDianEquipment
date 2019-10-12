@@ -63,44 +63,6 @@ public class JieMinKeBatteryUpgradeStrategy extends BatteryUpgradeStrategy
         {
             return;
         }
-        if (TextUtils.isEmpty(filePath))
-        {
-            batteryUpgradeInfo.statusFlag = BatteryUpgradeStrategyStatus.FAILED;
-            batteryUpgradeInfo.statusInfo = "升级文件路径为空";
-            onUpgradeProgress.onUpgrade(batteryUpgradeInfo);
-            return;
-        }
-        File file = new File(filePath);
-        System.out.println(file.getAbsolutePath());
-        if (!(file != null && file.exists()))
-        {
-            batteryUpgradeInfo.statusFlag = BatteryUpgradeStrategyStatus.FAILED;
-            batteryUpgradeInfo.statusInfo = "升级文件不存在!";
-            onUpgradeProgress.onUpgrade(batteryUpgradeInfo);
-            return;
-        }
-
-        InputStream inputStream = null;
-        try
-        {
-            inputStream = new FileInputStream(file);
-        }
-        catch (FileNotFoundException e)
-        {
-            e.printStackTrace();
-            batteryUpgradeInfo.statusFlag = BatteryUpgradeStrategyStatus.FAILED;
-            batteryUpgradeInfo.statusInfo = "升级文件没有找到!\n" + e.getLocalizedMessage();
-            onUpgradeProgress.onUpgrade(batteryUpgradeInfo);
-            return;
-        }
-
-        if (inputStream == null)
-        {
-            batteryUpgradeInfo.statusFlag = BatteryUpgradeStrategyStatus.FAILED;
-            batteryUpgradeInfo.statusInfo = "升级文件流为null!";
-            onUpgradeProgress.onUpgrade(batteryUpgradeInfo);
-            return;
-        }
 
         short snTemp = 0;
         int totalFrameSizeTemp = 0;
@@ -131,6 +93,50 @@ public class JieMinKeBatteryUpgradeStrategy extends BatteryUpgradeStrategy
                 batteryUpgradeInfo.statusFlag = BatteryUpgradeStrategyStatus.FAILED;
                 batteryUpgradeInfo.statusInfo = "激活485转发失败!";
                 onUpgradeProgress.onUpgrade(batteryUpgradeInfo);
+                sleep(3000);
+                return;
+            }
+
+            if (TextUtils.isEmpty(filePath))
+            {
+                batteryUpgradeInfo.statusFlag = BatteryUpgradeStrategyStatus.FAILED;
+                batteryUpgradeInfo.statusInfo = "升级文件路径为空";
+                onUpgradeProgress.onUpgrade(batteryUpgradeInfo);
+                sleep(3000);
+                return;
+            }
+            File file = new File(filePath);
+            System.out.println(file.getAbsolutePath());
+            if (!(file != null && file.exists()))
+            {
+                batteryUpgradeInfo.statusFlag = BatteryUpgradeStrategyStatus.FAILED;
+                batteryUpgradeInfo.statusInfo = "升级文件不存在!";
+                onUpgradeProgress.onUpgrade(batteryUpgradeInfo);
+                sleep(3000);
+                return;
+            }
+
+            InputStream inputStream = null;
+            try
+            {
+                inputStream = new FileInputStream(file);
+            }
+            catch (FileNotFoundException e)
+            {
+                e.printStackTrace();
+                batteryUpgradeInfo.statusFlag = BatteryUpgradeStrategyStatus.FAILED;
+                batteryUpgradeInfo.statusInfo = "升级文件没有找到!\n" + e.getLocalizedMessage();
+                onUpgradeProgress.onUpgrade(batteryUpgradeInfo);
+                sleep(3000);
+                return;
+            }
+
+            if (inputStream == null)
+            {
+                batteryUpgradeInfo.statusFlag = BatteryUpgradeStrategyStatus.FAILED;
+                batteryUpgradeInfo.statusInfo = "升级文件流为null!";
+                onUpgradeProgress.onUpgrade(batteryUpgradeInfo);
+                sleep(3000);
                 return;
             }
 

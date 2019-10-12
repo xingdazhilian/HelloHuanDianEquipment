@@ -79,4 +79,12 @@ public final class SerialPortDeviceController implements Consumer<SerialPortIoAc
     {
         return Protocol.SERIAL_PORT;
     }
+
+    public void stop()
+    {
+        if (serialPortDevice != null)
+        {
+            serialPortDevice.closeSerial();
+        }
+    }
 }

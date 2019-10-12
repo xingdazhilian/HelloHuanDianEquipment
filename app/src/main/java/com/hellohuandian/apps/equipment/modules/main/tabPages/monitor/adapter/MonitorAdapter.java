@@ -1,6 +1,7 @@
 package com.hellohuandian.apps.equipment.modules.main.tabPages.monitor.adapter;
 
 import android.content.Context;
+import android.graphics.Color;
 import android.text.TextUtils;
 import android.view.View;
 import android.view.ViewGroup;
@@ -12,6 +13,7 @@ import com.hellohuandian.apps.equipment._base.adapter.BaseRecycleAdapter;
 import com.hellohuandian.apps.strategylibrary.strategies._data.BatteryData;
 import com.hellohuandian.apps.strategylibrary.strategies.battery.BatteryInfo;
 import com.hellohuandian.apps.strategylibrary.strategies.upgrade.battery.BatteryUpgradeInfo;
+import com.hellohuandian.apps.strategylibrary.strategies.upgrade.battery.BatteryUpgradeStrategyStatus;
 
 import java.util.HashMap;
 
@@ -187,13 +189,33 @@ public class MonitorAdapter extends BaseRecycleAdapter<BatteryData, BaseRecycleA
         {
             if (model instanceof BatteryUpgradeInfo)
             {
-                tvPosition.setText(String.format("%02d", position + 1) );
+                tvPosition.setText(String.format("%02d", position + 1));
                 modelBatteryUpgradeInfo = (BatteryUpgradeInfo) model;
                 if (modelBatteryUpgradeInfo.totalPregress > 0)
                 {
                     int percent = (int) ((float) modelBatteryUpgradeInfo.currentPregress / modelBatteryUpgradeInfo.totalPregress * 100);
-                    tvPercent.setText(percent + "%");
-                    pbStatusBar.setProgress(percent);
+                    if (!(percent + "%").equals(tvPercent.getText().toString()))
+                    {
+                        tvPercent.setText(percent + "%");
+                        pbStatusBar.setProgress(percent);
+                    }
+
+                    //                    System.out.println("mapAddress:" + modelBatteryUpgradeInfo.address);
+                    //                    System.out.println("statusFlag:" + modelBatteryUpgradeInfo.statusFlag);
+                    //                    System.out.println("statusInfo:" + modelBatteryUpgradeInfo.statusInfo);
+                    //                    System.out.println("currentPregress:" + modelBatteryUpgradeInfo.currentPregress);
+                    //                    System.out.println("totalPregress:" + modelBatteryUpgradeInfo.totalPregress);
+                    if (modelBatteryUpgradeInfo.totalPregress > 0)
+                    {
+                        System.out.println((int) ((float) modelBatteryUpgradeInfo.currentPregress / modelBatteryUpgradeInfo.totalPregress * 100) + "%");
+                    }
+                }
+                if (modelBatteryUpgradeInfo.statusFlag == BatteryUpgradeStrategyStatus.FAILED)
+                {
+                    tvStatusInfo.setTextColor(Color.RED);
+                } else if (modelBatteryUpgradeInfo.statusFlag == BatteryUpgradeStrategyStatus.SUCCESSED)
+                {
+                    tvStatusInfo.setTextColor(Color.GREEN);
                 }
                 tvStatusInfo.setText(modelBatteryUpgradeInfo.statusInfo);
             }
