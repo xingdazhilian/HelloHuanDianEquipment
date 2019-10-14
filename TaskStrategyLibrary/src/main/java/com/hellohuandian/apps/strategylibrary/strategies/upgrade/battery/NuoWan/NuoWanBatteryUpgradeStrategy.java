@@ -4,8 +4,8 @@ import android.text.TextUtils;
 
 import com.hellohuandian.apps.controllerlibrary.DeviceIoAction;
 import com.hellohuandian.apps.strategylibrary.strategies.upgrade.battery.BatteryUpgradeInfo;
-import com.hellohuandian.apps.strategylibrary.strategies.upgrade.battery.BatteryUpgradeStrategyStatus;
 import com.hellohuandian.apps.strategylibrary.strategies.upgrade.battery.BatteryUpgradeStrategy;
+import com.hellohuandian.apps.strategylibrary.strategies.upgrade.battery.BatteryUpgradeStrategyStatus;
 import com.hellohuandian.apps.strategylibrary.strategies.upgrade.battery.OnUpgradeProgress;
 import com.hellohuandian.apps.utillibrary.StringFormatHelper;
 
@@ -49,9 +49,6 @@ public class NuoWanBatteryUpgradeStrategy extends BatteryUpgradeStrategy
     //立即激活新程序，不激活的话，在所有数据帧写完之10S后电池自动激活
     private byte[] activationBMS = new byte[]{0x3A, 0x16, (byte) 0xF0, 0x02, (byte) 0xF4, 0x00, 0x00, 0x00, 0x0D, 0x0A};
 
-    //当F4命令激活失败，尝试复位激活电池
-    private final byte[] reset_BMS = new byte[]{0x3A, 0x16, (byte) 0xF0, 0x02, (byte) 0xF3, 0x00, 0x00, 0x00, 0x0D, 0x0A};
-
     private final BatteryUpgradeInfo batteryUpgradeInfo = new BatteryUpgradeInfo(address);
 
     public NuoWanBatteryUpgradeStrategy(byte address, String filePath)
@@ -64,43 +61,6 @@ public class NuoWanBatteryUpgradeStrategy extends BatteryUpgradeStrategy
     {
         if (deviceIoAction == null)
         {
-            return;
-        }
-        if (TextUtils.isEmpty(filePath))
-        {
-            batteryUpgradeInfo.statusFlag = BatteryUpgradeStrategyStatus.FAILED;
-            batteryUpgradeInfo.statusInfo = "升级文件路径为空";
-            onUpgradeProgress.onUpgrade(batteryUpgradeInfo);
-            return;
-        }
-        File file = new File(filePath);
-        System.out.println(file.getAbsolutePath());
-        if (!(file != null && file.exists()))
-        {
-            batteryUpgradeInfo.statusFlag = BatteryUpgradeStrategyStatus.FAILED;
-            batteryUpgradeInfo.statusInfo = "升级文件不存在!";
-            onUpgradeProgress.onUpgrade(batteryUpgradeInfo);
-            return;
-        }
-
-        InputStream inputStream = null;
-        try
-        {
-            inputStream = new FileInputStream(file);
-        }
-        catch (FileNotFoundException e)
-        {
-            e.printStackTrace();
-            batteryUpgradeInfo.statusFlag = BatteryUpgradeStrategyStatus.FAILED;
-            batteryUpgradeInfo.statusInfo = "升级文件没有找到!\n" + e.getLocalizedMessage();
-            onUpgradeProgress.onUpgrade(batteryUpgradeInfo);
-        }
-
-        if (inputStream == null)
-        {
-            batteryUpgradeInfo.statusFlag = BatteryUpgradeStrategyStatus.FAILED;
-            batteryUpgradeInfo.statusInfo = "升级文件流为null!";
-            onUpgradeProgress.onUpgrade(batteryUpgradeInfo);
             return;
         }
 
@@ -117,12 +77,13 @@ public class NuoWanBatteryUpgradeStrategy extends BatteryUpgradeStrategy
 
             // TODO: 2019-09-05 激活485转发
             sleep(10 * 1000);
-            System.out.println("》" + StringFormatHelper.getInstance().toHexString(_485));
+            deviceIoAction.read();
+            System.out.println("激活485转发" + StringFormatHelper.getInstance().toHexString(_485));
             deviceIoAction.write(_485);
             // TODO: 2019-09-05 读取一次串口数据
             sleep(200);
             result = deviceIoAction.read();
-            System.out.println("《" + StringFormatHelper.getInstance().toHexString(result));
+            System.out.println("激活485转发结果" + StringFormatHelper.getInstance().toHexString(result));
             if (result != null && result.length > 0)
             {
                 batteryUpgradeInfo.statusFlag = BatteryUpgradeStrategyStatus.WAITTING;
@@ -135,6 +96,46 @@ public class NuoWanBatteryUpgradeStrategy extends BatteryUpgradeStrategy
                 onUpgradeProgress.onUpgrade(batteryUpgradeInfo);
                 return;
             }
+
+            if (TextUtils.isEmpty(filePath))
+            {
+                batteryUpgradeInfo.statusFlag = BatteryUpgradeStrategyStatus.FAILED;
+                batteryUpgradeInfo.statusInfo = "升级文件路径为空";
+                onUpgradeProgress.onUpgrade(batteryUpgradeInfo);
+                return;
+            }
+            File file = new File(filePath);
+            System.out.println(file.getAbsolutePath());
+            if (!(file != null && file.exists()))
+            {
+                batteryUpgradeInfo.statusFlag = BatteryUpgradeStrategyStatus.FAILED;
+                batteryUpgradeInfo.statusInfo = "升级文件不存在!";
+                onUpgradeProgress.onUpgrade(batteryUpgradeInfo);
+                return;
+            }
+
+            InputStream inputStream = null;
+            try
+            {
+                inputStream = new FileInputStream(file);
+            }
+            catch (FileNotFoundException e)
+            {
+                e.printStackTrace();
+                batteryUpgradeInfo.statusFlag = BatteryUpgradeStrategyStatus.FAILED;
+                batteryUpgradeInfo.statusInfo = "升级文件没有找到!\n" + e.getLocalizedMessage();
+                onUpgradeProgress.onUpgrade(batteryUpgradeInfo);
+                return;
+            }
+
+            if (inputStream == null)
+            {
+                batteryUpgradeInfo.statusFlag = BatteryUpgradeStrategyStatus.FAILED;
+                batteryUpgradeInfo.statusInfo = "升级文件流为null!";
+                onUpgradeProgress.onUpgrade(batteryUpgradeInfo);
+                return;
+            }
+
 
             int sum;
 
@@ -149,12 +150,12 @@ public class NuoWanBatteryUpgradeStrategy extends BatteryUpgradeStrategy
 
                 sleep(500);
                 result = deviceIoAction.read();
-                if (result != null && result.length > 0)
+                if (result != null && result.length > 6 && result[4] == (byte) 0xF1 && result[5] == 0x00)
                 {
                     break;
                 }
             }
-            if (result != null && result.length > 0)
+            if (result != null && result.length > 6 && result[4] == (byte) 0xF1 && result[5] == 0x00)
             {
                 batteryUpgradeInfo.statusFlag = BatteryUpgradeStrategyStatus.BOOT_LOADER_MODE;
                 batteryUpgradeInfo.statusInfo = "进入BootLoader模式成功!";
@@ -171,11 +172,11 @@ public class NuoWanBatteryUpgradeStrategy extends BatteryUpgradeStrategy
             sum = calculateSum(BMS_cmd, 1, 5);
             BMS_cmd[6] = (byte) (sum & 0xFF);
             BMS_cmd[7] = (byte) (sum >> 8 & 0xFF);
-            System.out.println("》" + StringFormatHelper.getInstance().toHexString(BMS_cmd));
+            System.out.println("电池信息写入：" + StringFormatHelper.getInstance().toHexString(BMS_cmd));
             deviceIoAction.write(BMS_cmd);
             sleep(200);
             result = deviceIoAction.read();
-            System.out.println("《" + StringFormatHelper.getInstance().toHexString(result));
+            System.out.println("电池信息读取" + StringFormatHelper.getInstance().toHexString(result));
             if (result != null && result.length > 30)
             {
                 if ((result[27] & 0xFF) != 0)
@@ -260,13 +261,14 @@ public class NuoWanBatteryUpgradeStrategy extends BatteryUpgradeStrategy
                 sum = calculateSum(firmwareInfo, 1, 20);
                 firmwareInfo[21] = (byte) (sum & 0xFF);
                 firmwareInfo[22] = (byte) (sum >> 8 & 0xFF);
-                System.out.println("固件信息：" + StringFormatHelper.getInstance().toHexString(firmwareInfo));
+                System.out.println("新固件信息写入：" + StringFormatHelper.getInstance().toHexString(firmwareInfo));
+                System.out.println("总帧数：" + totalFrameSize);
                 deviceIoAction.write(firmwareInfo);
                 sleep(1500);
                 result = deviceIoAction.read();
-                System.out.println("固件信息结果：" + StringFormatHelper.getInstance().toHexString(result));
+                System.out.println("新固件信息读取：" + StringFormatHelper.getInstance().toHexString(result));
                 batteryUpgradeInfo.totalPregress = totalFrameSize;
-                if (result != null && result.length > 0)
+                if (result != null && result.length > 6 && result[4] == (byte) 0xF6 && result[5] == 0x00)
                 {
                     batteryUpgradeInfo.statusFlag = BatteryUpgradeStrategyStatus.INIT_FIRMWARE_DATA;
                     batteryUpgradeInfo.statusInfo = "新固件信息发送成功!";
@@ -294,12 +296,13 @@ public class NuoWanBatteryUpgradeStrategy extends BatteryUpgradeStrategy
                     sum = calculateSum(firmwareData, 1, 134);
                     firmwareData[135] = (byte) (sum & 0xFF);
                     firmwareData[136] = (byte) (sum >> 8 & 0xFF);
-
+                    System.out.println(sn + "条：" + StringFormatHelper.getInstance().toHexString(firmwareData));
                     deviceIoAction.write(firmwareData);
                     offset++;
                     sleep(500);
                     result = deviceIoAction.read();
-                    if (result != null && result.length > 0)
+                    batteryUpgradeInfo.currentPregress = sn;
+                    if (result != null && result.length > 6 && result[4] == (byte) 0xF7 && result[5] == 0x00)
                     {
                         batteryUpgradeInfo.statusFlag = BatteryUpgradeStrategyStatus.WRITE_DATA;
                         batteryUpgradeInfo.statusInfo = "发送" + sn + "条成功";
@@ -338,7 +341,7 @@ public class NuoWanBatteryUpgradeStrategy extends BatteryUpgradeStrategy
                     deviceIoAction.write(lastData);
                     sleep(5000);
                     result = deviceIoAction.read();
-                    if (result != null && result.length > 0)
+                    if (result != null && result.length > 6 && result[4] == (byte) 0xF7 && result[5] == 0x00)
                     {
                         batteryUpgradeInfo.statusFlag = BatteryUpgradeStrategyStatus.WRITE_DATA;
                         batteryUpgradeInfo.statusInfo = "发送" + sn + "条成功";
@@ -364,31 +367,18 @@ public class NuoWanBatteryUpgradeStrategy extends BatteryUpgradeStrategy
                 deviceIoAction.write(activationBMS);
                 sleep(100);
                 result = deviceIoAction.read();
-                if (!(result != null && result.length > 0))
+                System.out.println("激活读：" + StringFormatHelper.getInstance().toHexString(result));
+                if (result != null && result.length > 6 && result[4] == (byte) 0xF4 && result[5] == 0x00)
                 {
-                    // TODO: 2019-09-20 激活失败后，使用复位命令尝试
-                    sum = calculateSum(reset_BMS, 1, 5);
-                    reset_BMS[6] = (byte) (sum & 0xFF);
-                    reset_BMS[7] = (byte) (sum >> 8 & 0xFF);
-
-                    batteryUpgradeInfo.statusFlag = BatteryUpgradeStrategyStatus.ACTION_BMS;
-                    batteryUpgradeInfo.statusInfo = "开始复位...";
+                    batteryUpgradeInfo.statusInfo = "激活成功!";
                     onUpgradeProgress.onUpgrade(batteryUpgradeInfo);
-
-                    deviceIoAction.write(reset_BMS);
-                    sleep(100);
-                    result = deviceIoAction.read();
-                    if (!(result != null && result.length > 0))
-                    {
-                        batteryUpgradeInfo.statusFlag = BatteryUpgradeStrategyStatus.FAILED;
-                        batteryUpgradeInfo.statusInfo = "复位失败，请尝试插拔电池!";
-                        onUpgradeProgress.onUpgrade(batteryUpgradeInfo);
-                    }
+                } else
+                {
+                    // TODO: 2019-09-20 超时10S电池自动使用新程序
+                    sleep(10 * 1000);
+                    batteryUpgradeInfo.statusInfo = "激活成功!";
+                    onUpgradeProgress.onUpgrade(batteryUpgradeInfo);
                 }
-
-                batteryUpgradeInfo.statusFlag = BatteryUpgradeStrategyStatus.SUCCESSED;
-                batteryUpgradeInfo.statusInfo = "激活成功!";
-                onUpgradeProgress.onUpgrade(batteryUpgradeInfo);
             }
         }
         catch (IOException e)

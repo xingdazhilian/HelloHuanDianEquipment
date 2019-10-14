@@ -14,6 +14,26 @@ public abstract class BatteryUpgradeStrategy extends NodeStrategy
 
     protected OnUpgradeProgress onUpgradeProgress;
 
+    private final OnUpgradeProgress OnUpgradeProgressImpl = new OnUpgradeProgress()
+    {
+        boolean isFailed;
+
+        @Override
+        public void onUpgrade(BatteryUpgradeInfo batteryUpgradeInfo)
+        {
+            if (onUpgradeProgress != null && batteryUpgradeInfo != null)
+            {
+                isFailed = batteryUpgradeInfo.statusFlag == BatteryUpgradeStrategyStatus.FAILED;
+                onUpgradeProgress.onUpgrade(batteryUpgradeInfo);
+                System.out.println(batteryUpgradeInfo.statusInfo);
+                if (isFailed)
+                {
+                    sleep(2000);
+                }
+            }
+        }
+    };
+
     public BatteryUpgradeStrategy(byte address, String filePath)
     {
         super(address);
@@ -36,7 +56,7 @@ public abstract class BatteryUpgradeStrategy extends NodeStrategy
     @Override
     public void execute(DeviceIoAction deviceIoAction)
     {
-        upgrade(deviceIoAction, onUpgradeProgress);
+        upgrade(deviceIoAction, OnUpgradeProgressImpl);
         // TODO: 2019-10-10 升级完成之后执行下一个策略
         nextCall();
     }

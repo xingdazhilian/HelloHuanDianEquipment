@@ -77,6 +77,7 @@ public class JieMinKeBatteryUpgradeStrategy extends BatteryUpgradeStrategy
 
             // TODO: 2019-09-05 激活485转发
             sleep(10 * 1000);
+            deviceIoAction.read();
             System.out.println("激活485转发" + StringFormatHelper.getInstance().toHexString(_485));
             deviceIoAction.write(_485);
             // TODO: 2019-09-05 读取一次串口数据
@@ -93,7 +94,6 @@ public class JieMinKeBatteryUpgradeStrategy extends BatteryUpgradeStrategy
                 batteryUpgradeInfo.statusFlag = BatteryUpgradeStrategyStatus.FAILED;
                 batteryUpgradeInfo.statusInfo = "激活485转发失败!";
                 onUpgradeProgress.onUpgrade(batteryUpgradeInfo);
-                sleep(3000);
                 return;
             }
 
@@ -102,7 +102,6 @@ public class JieMinKeBatteryUpgradeStrategy extends BatteryUpgradeStrategy
                 batteryUpgradeInfo.statusFlag = BatteryUpgradeStrategyStatus.FAILED;
                 batteryUpgradeInfo.statusInfo = "升级文件路径为空";
                 onUpgradeProgress.onUpgrade(batteryUpgradeInfo);
-                sleep(3000);
                 return;
             }
             File file = new File(filePath);
@@ -112,7 +111,6 @@ public class JieMinKeBatteryUpgradeStrategy extends BatteryUpgradeStrategy
                 batteryUpgradeInfo.statusFlag = BatteryUpgradeStrategyStatus.FAILED;
                 batteryUpgradeInfo.statusInfo = "升级文件不存在!";
                 onUpgradeProgress.onUpgrade(batteryUpgradeInfo);
-                sleep(3000);
                 return;
             }
 
@@ -127,7 +125,6 @@ public class JieMinKeBatteryUpgradeStrategy extends BatteryUpgradeStrategy
                 batteryUpgradeInfo.statusFlag = BatteryUpgradeStrategyStatus.FAILED;
                 batteryUpgradeInfo.statusInfo = "升级文件没有找到!\n" + e.getLocalizedMessage();
                 onUpgradeProgress.onUpgrade(batteryUpgradeInfo);
-                sleep(3000);
                 return;
             }
 
@@ -136,7 +133,6 @@ public class JieMinKeBatteryUpgradeStrategy extends BatteryUpgradeStrategy
                 batteryUpgradeInfo.statusFlag = BatteryUpgradeStrategyStatus.FAILED;
                 batteryUpgradeInfo.statusInfo = "升级文件流为null!";
                 onUpgradeProgress.onUpgrade(batteryUpgradeInfo);
-                sleep(3000);
                 return;
             }
 
@@ -152,7 +148,7 @@ public class JieMinKeBatteryUpgradeStrategy extends BatteryUpgradeStrategy
                 deviceIoAction.write(bootLoaderMode);
                 sleep(500);
                 result = deviceIoAction.read();
-                if (result != null && result.length > 0)
+                if (result != null && result.length > 6 && result[4] == (byte) 0xF1 && result[5] == 0x00)
                 {
                     break;
                 }

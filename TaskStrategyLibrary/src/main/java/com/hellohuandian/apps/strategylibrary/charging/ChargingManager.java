@@ -10,7 +10,6 @@ import com.hellohuandian.apps.strategylibrary._core.FuncManager;
 public class ChargingManager extends FuncManager
 {
     private static final ChargingManager CHARGING_MANAGER = new ChargingManager();
-
     private ChargingManager()
     {
     }
