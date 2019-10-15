@@ -17,7 +17,8 @@ ext {
             rxjavaVersion           : "2.1.4",
             lifecycleVersion        : "1.1.1",
             eventbusVersion         : "3.1.1",
-            loggerVersion           : "2.2.0"
+            loggerVersion           : "2.2.0",
+            process_hoenixVersion   : "2.0.0"
     ]
 
     dependencies = [
@@ -49,8 +50,8 @@ ext {
 
             "eventbus"                        : "org.greenrobot:eventbus:${version["eventbusVersion"]}",
 
-            "logger"                          : "com.orhanobut:logger:${version["loggerVersion"]}"
-
+            "logger"                          : "com.orhanobut:logger:${version["loggerVersion"]}",
+            "process-phoenix"                 : "com.jakewharton:process-phoenix:${version["process_hoenixVersion"]}"
     ]
 
 }

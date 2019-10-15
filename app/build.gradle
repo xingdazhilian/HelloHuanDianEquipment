@@ -45,6 +45,7 @@ dependencies {
     implementation rootProject.ext.dependencies["rxandroid"]
     annotationProcessor rootProject.ext.dependencies["butterknife-compiler"]
     implementation rootProject.ext.dependencies["butterknife"]
+    implementation rootProject.ext.dependencies["process-phoenix"]
 
     implementation project(path: ':AppBaseLibrary')
 

@@ -151,7 +151,8 @@ public class MonitorAdapter extends BaseRecycleAdapter<BatteryData, BaseRecycleA
                         + modelBatteryInfo.str_relativeCapatityPercent + "\n"
                         + modelBatteryInfo.str_realTimeCurrent + "\n"
                         + modelBatteryInfo.str_batteryTemperature + "\n"
-                        + "sv" + modelBatteryInfo.softwareVersion + ",hv" + modelBatteryInfo.hardwareVersion);
+                        + "sv" + modelBatteryInfo.softwareVersion + ",hv" + modelBatteryInfo.hardwareVersion + "\n"
+                        + "BMS-" + modelBatteryInfo._BMS_manufacturer);
             }
         }
 
@@ -194,20 +195,11 @@ public class MonitorAdapter extends BaseRecycleAdapter<BatteryData, BaseRecycleA
                 if (modelBatteryUpgradeInfo.totalPregress > 0)
                 {
                     int percent = (int) ((float) modelBatteryUpgradeInfo.currentPregress / modelBatteryUpgradeInfo.totalPregress * 100);
-                    if (!(percent + "%").equals(tvPercent.getText().toString()))
+                    if (pbStatusBar.getProgress() != percent)
                     {
                         tvPercent.setText(percent + "%");
                         pbStatusBar.setProgress(percent);
-                    }
-
-                    //                    System.out.println("mapAddress:" + modelBatteryUpgradeInfo.address);
-                    //                    System.out.println("statusFlag:" + modelBatteryUpgradeInfo.statusFlag);
-                    //                    System.out.println("statusInfo:" + modelBatteryUpgradeInfo.statusInfo);
-                    //                    System.out.println("currentPregress:" + modelBatteryUpgradeInfo.currentPregress);
-                    //                    System.out.println("totalPregress:" + modelBatteryUpgradeInfo.totalPregress);
-                    if (modelBatteryUpgradeInfo.totalPregress > 0)
-                    {
-                        System.out.println((int) ((float) modelBatteryUpgradeInfo.currentPregress / modelBatteryUpgradeInfo.totalPregress * 100) + "%");
+                        System.out.println(percent + "%");
                     }
                 }
                 if (modelBatteryUpgradeInfo.statusFlag == BatteryUpgradeStrategyStatus.FAILED)

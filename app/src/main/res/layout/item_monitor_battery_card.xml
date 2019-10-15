@@ -64,7 +64,7 @@
         android:layout_marginTop="10dp"
         android:lineSpacingExtra="2dp"
         android:lineSpacingMultiplier="1.1"
-        android:text="电压：\n电量：\n电流：\n温度：\n版本："
+        android:text="电压：\n电量：\n电流：\n温度：\n版本：\n厂商："
         android:textColor="@color/colorBlack"
         android:textSize="16sp"
         />

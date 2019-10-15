@@ -4,6 +4,7 @@ import android.app.Service;
 import android.content.Intent;
 import android.os.Handler;
 import android.os.IBinder;
+import android.os.Looper;
 import android.os.Message;
 
 import com.hellohuandian.apps.equipment.modules.config.MachineVersionConfig;
@@ -52,6 +53,7 @@ public class StrategyService extends Service implements OnBatteryDataUpdate
         BatteriesMonitor.getInstance().addOnBatteryDataUpdate(this);
         ScManager.getInstance().init(MachineVersionConfig.getMachineVersion());
         ScManager.getInstance().start();
+        System.out.println("策略服务启动");
     }
 
     @Override
@@ -65,10 +67,21 @@ public class StrategyService extends Service implements OnBatteryDataUpdate
     @Override
     public void onUpdate(BatteryData batteryData)
     {
-        handler.removeMessages(batteryData.address);
-        Message message = handler.obtainMessage(batteryData.address);
-        message.obj = batteryData;
-        handler.sendMessage(message);
+        if (isMainThread())
+        {
+            BatteryWatcherRegisters.onWatch(batteryData);
+        } else
+        {
+            handler.removeMessages(batteryData.address);
+            Message message = handler.obtainMessage(batteryData.address);
+            message.obj = batteryData;
+            handler.sendMessage(message);
+        }
+    }
+
+    public boolean isMainThread()
+    {
+        return Looper.getMainLooper() == Looper.myLooper();
     }
 
     public static class BatteryWatcherRegisters

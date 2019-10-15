@@ -1,6 +1,5 @@
 package com.hellohuandian.apps.equipment.modules.main.tabPages.monitor;
 
-import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 
@@ -9,7 +8,6 @@ import com.hellohuandian.apps.equipment._base.fragments.AppBaseFragment;
 import com.hellohuandian.apps.equipment.modules.config.MachineVersionConfig;
 import com.hellohuandian.apps.equipment.modules.main.tabPages.monitor.adapter.MonitorAdapter;
 import com.hellohuandian.apps.equipment.modules.main.viewmodel.BatteryViewModel;
-import com.hellohuandian.apps.equipment.services.StrategyService;
 import com.hellohuandian.apps.equipment.widgets.SimpleItemDecoration;
 import com.hellohuandian.apps.equipment.widgets.dialog.AppDialog;
 import com.hellohuandian.apps.strategylibrary.config.MachineVersion;
@@ -22,6 +20,7 @@ import com.hellohuandian.apps.strategylibrary.strategies.relay.RelayCloseStrateg
 import com.hellohuandian.apps.strategylibrary.strategies.upgrade.battery.BatteryUpgradeInfo;
 import com.hellohuandian.apps.strategylibrary.strategies.upgrade.battery.BatteryUpgradeStrategy;
 import com.hellohuandian.apps.strategylibrary.strategies.upgrade.battery.JieMinKe.JieMinKeBatteryUpgradeStrategy;
+import com.hellohuandian.apps.strategylibrary.strategies.upgrade.battery.NuoWan.NuoWanBatteryUpgradeStrategy;
 import com.hellohuandian.apps.strategylibrary.strategies.upgrade.battery.OnUpgradeProgress;
 
 import androidx.annotation.Nullable;
@@ -44,6 +43,7 @@ public class MonitorFragment extends AppBaseFragment implements View.OnClickList
     private MonitorAdapter monitorAdapter;
     private AppDialog appDialog = new AppDialog(R.layout.layout_loading_dialog);
     private MonitorAdapter.OnOpenDoorAction onOpenDoorAction = address -> {
+        System.out.println("推杆地址：" + address);
         // TODO: 2019-10-09 执行推杆操作
         pushRod(address);
     };
@@ -72,7 +72,8 @@ public class MonitorFragment extends AppBaseFragment implements View.OnClickList
                 }
             });
         }
-//        testBatteryUpgradeStrategy();
+        //        testBatteryUpgradeStrategy();
+        testNulWanBatteryUpgradeStrategy();
     }
 
     @Override
@@ -159,7 +160,55 @@ public class MonitorFragment extends AppBaseFragment implements View.OnClickList
                 }
                 System.out.println("开始升级");
                 BatteryUpgradeStrategy batteryUpgradeStrategy = new JieMinKeBatteryUpgradeStrategy((byte) 0x05, "/sdcard/Download" +
-                        "/HelloBMS19S_HW0101_FW0163_CRC62069E48.bin");
+                        "/HelloBMS19S_HW0101_FW0159_CRCCF220E3D_BT00000000.bin");
+                batteryUpgradeStrategy.setOnUpgradeProgress(new OnUpgradeProgress()
+                {
+                    @Override
+                    public void onUpgrade(BatteryUpgradeInfo batteryUpgradeInfo)
+                    {
+                        if (batteryViewModel != null)
+                        {
+                            batteryViewModel.batteryMonitorLiveData.postValue(batteryUpgradeInfo);
+                        }
+                    }
+                });
+
+                batteryUpgradeStrategy.addNext(new Action485((byte) 0x05))
+                        .first()
+                        .call(new Consumer<NodeStrategy>()
+                        {
+                            @Override
+                            public void accept(NodeStrategy nodeStrategy)
+                            {
+                                DispatcherManager.getInstance().dispatch(nodeStrategy);
+                            }
+                        });
+
+            }
+        }).start();
+    }
+
+    private void testNulWanBatteryUpgradeStrategy()
+    {
+        // TODO: 2019-10-11 升级过程中其他控制操作必须暂停
+        new Thread(new Runnable()
+        {
+            @Override
+            public void run()
+            {
+                System.out.println("准备升级");
+                try
+                {
+                    Thread.sleep(5000);
+                }
+                catch (InterruptedException e)
+                {
+                    e.printStackTrace();
+                }
+                System.out.println("开始升级");
+                BatteryUpgradeStrategy batteryUpgradeStrategy = new NuoWanBatteryUpgradeStrategy((byte) 0x05, "/sdcard/Download" +
+//                        "/60V_19_V006.bin");
+                        "/60V_19_V250.bin");
                 batteryUpgradeStrategy.setOnUpgradeProgress(new OnUpgradeProgress()
                 {
                     @Override
@@ -194,8 +243,7 @@ public class MonitorFragment extends AppBaseFragment implements View.OnClickList
         switch (v.getId())
         {
             case R.id.tv_exitApp:
-                getActivity().stopService(new Intent(getActivity(), StrategyService.class));
-                getActivity().finish();
+                Runtime.getRuntime().exit(0);
                 break;
         }
     }

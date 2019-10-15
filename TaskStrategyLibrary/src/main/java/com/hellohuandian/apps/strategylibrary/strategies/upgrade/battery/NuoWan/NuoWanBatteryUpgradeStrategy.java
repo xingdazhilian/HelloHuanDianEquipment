@@ -18,7 +18,7 @@ import java.io.InputStream;
 /**
  * Author:      Lee Yeung
  * Create Date: 2019-09-04
- * Description:诺万电池升级程序,该代码程序升级文件校验！！！
+ * Description:诺万电池升级程序,该代码程序不负责升级文件校验！！！
  */
 public class NuoWanBatteryUpgradeStrategy extends BatteryUpgradeStrategy
 {
@@ -56,13 +56,36 @@ public class NuoWanBatteryUpgradeStrategy extends BatteryUpgradeStrategy
         super(address, filePath);
     }
 
+    private OnUpgradeProgress mapOnUpgradeProgressImpl(final OnUpgradeProgress onUpgradeProgress)
+    {
+        return new OnUpgradeProgress()
+        {
+            private final OnUpgradeProgress innerOnUpgradeProgress = onUpgradeProgress;
+
+            @Override
+            public void onUpgrade(BatteryUpgradeInfo batteryUpgradeInfo)
+            {
+                if (innerOnUpgradeProgress != null)
+                {
+                    innerOnUpgradeProgress.onUpgrade(batteryUpgradeInfo);
+                    System.out.println(batteryUpgradeInfo.statusInfo);
+                    if (batteryUpgradeInfo.statusFlag == BatteryUpgradeStrategyStatus.FAILED)
+                    {
+                        sleep(2000);
+                    }
+                }
+            }
+        };
+    }
+
     @Override
     public void upgrade(DeviceIoAction deviceIoAction, OnUpgradeProgress onUpgradeProgress)
     {
-        if (deviceIoAction == null)
+        if (deviceIoAction == null || onUpgradeProgress == null)
         {
             return;
         }
+        onUpgradeProgress = mapOnUpgradeProgressImpl(onUpgradeProgress);
 
         short snTemp = 0;
         int totalFrameSizeTemp = 0;
@@ -74,25 +97,23 @@ public class NuoWanBatteryUpgradeStrategy extends BatteryUpgradeStrategy
         try
         {
             byte[] result = null;
-
-            // TODO: 2019-09-05 激活485转发
-            sleep(10 * 1000);
+            sleep(5000);
             deviceIoAction.read();
+            // TODO: 2019-09-05 激活485转发
             System.out.println("激活485转发" + StringFormatHelper.getInstance().toHexString(_485));
             deviceIoAction.write(_485);
             // TODO: 2019-09-05 读取一次串口数据
-            sleep(200);
+            sleep(500);
             result = deviceIoAction.read();
-            System.out.println("激活485转发结果" + StringFormatHelper.getInstance().toHexString(result));
             if (result != null && result.length > 0)
             {
                 batteryUpgradeInfo.statusFlag = BatteryUpgradeStrategyStatus.WAITTING;
-                batteryUpgradeInfo.statusInfo = "激活485转发成功!";
+                batteryUpgradeInfo.statusInfo = "激活485转发成功:" + StringFormatHelper.getInstance().toHexString(result);
                 onUpgradeProgress.onUpgrade(batteryUpgradeInfo);
             } else
             {
                 batteryUpgradeInfo.statusFlag = BatteryUpgradeStrategyStatus.FAILED;
-                batteryUpgradeInfo.statusInfo = "激活485转发失败!";
+                batteryUpgradeInfo.statusInfo = "激活485转发失败:" + StringFormatHelper.getInstance().toHexString(result);
                 onUpgradeProgress.onUpgrade(batteryUpgradeInfo);
                 return;
             }
@@ -105,11 +126,10 @@ public class NuoWanBatteryUpgradeStrategy extends BatteryUpgradeStrategy
                 return;
             }
             File file = new File(filePath);
-            System.out.println(file.getAbsolutePath());
             if (!(file != null && file.exists()))
             {
                 batteryUpgradeInfo.statusFlag = BatteryUpgradeStrategyStatus.FAILED;
-                batteryUpgradeInfo.statusInfo = "升级文件不存在!";
+                batteryUpgradeInfo.statusInfo = "升级文件不存在:" + file.getAbsolutePath();
                 onUpgradeProgress.onUpgrade(batteryUpgradeInfo);
                 return;
             }
@@ -136,7 +156,6 @@ public class NuoWanBatteryUpgradeStrategy extends BatteryUpgradeStrategy
                 return;
             }
 
-
             int sum;
 
             // TODO: 2019-09-05 进入BootLoader模式
@@ -158,59 +177,57 @@ public class NuoWanBatteryUpgradeStrategy extends BatteryUpgradeStrategy
             if (result != null && result.length > 6 && result[4] == (byte) 0xF1 && result[5] == 0x00)
             {
                 batteryUpgradeInfo.statusFlag = BatteryUpgradeStrategyStatus.BOOT_LOADER_MODE;
-                batteryUpgradeInfo.statusInfo = "进入BootLoader模式成功!";
+                batteryUpgradeInfo.statusInfo = "进入BootLoader模式成功:" + StringFormatHelper.getInstance().toHexString(result);
                 onUpgradeProgress.onUpgrade(batteryUpgradeInfo);
             } else
             {
                 batteryUpgradeInfo.statusFlag = BatteryUpgradeStrategyStatus.FAILED;
-                batteryUpgradeInfo.statusInfo = "进入BootLoader模式失败!" + StringFormatHelper.getInstance().toHexString(result);
+                batteryUpgradeInfo.statusInfo = "进入BootLoader模式失败:" + StringFormatHelper.getInstance().toHexString(result);
                 onUpgradeProgress.onUpgrade(batteryUpgradeInfo);
                 return;
             }
 
-            // TODO: 2019-09-17 判断电池是否符合捷敏科电池升级要求
+            // TODO: 2019-09-17 判断电池是否符合电池升级要求
             sum = calculateSum(BMS_cmd, 1, 5);
             BMS_cmd[6] = (byte) (sum & 0xFF);
             BMS_cmd[7] = (byte) (sum >> 8 & 0xFF);
-            System.out.println("电池信息写入：" + StringFormatHelper.getInstance().toHexString(BMS_cmd));
             deviceIoAction.write(BMS_cmd);
             sleep(200);
             result = deviceIoAction.read();
-            System.out.println("电池信息读取" + StringFormatHelper.getInstance().toHexString(result));
             if (result != null && result.length > 30)
             {
                 if ((result[27] & 0xFF) != 0)
                 {
                     batteryUpgradeInfo.statusFlag = BatteryUpgradeStrategyStatus.FAILED;
-                    batteryUpgradeInfo.statusInfo = "BMS厂商不匹配!" + StringFormatHelper.getInstance().toHexString(result);
+                    batteryUpgradeInfo.statusInfo = "BMS厂商不匹配:" + StringFormatHelper.getInstance().toHexString(result);
                     onUpgradeProgress.onUpgrade(batteryUpgradeInfo);
                     return;
                 }
                 if ((result[28] & 0xFF) != 0)
                 {
                     batteryUpgradeInfo.statusFlag = BatteryUpgradeStrategyStatus.FAILED;
-                    batteryUpgradeInfo.statusInfo = "电池厂商不匹配!" + StringFormatHelper.getInstance().toHexString(result);
+                    batteryUpgradeInfo.statusInfo = "电池厂商不匹配:" + StringFormatHelper.getInstance().toHexString(result);
                     onUpgradeProgress.onUpgrade(batteryUpgradeInfo);
                     return;
                 }
                 if ((result[29] & 0xFF) != 0)
                 {
                     batteryUpgradeInfo.statusFlag = BatteryUpgradeStrategyStatus.FAILED;
-                    batteryUpgradeInfo.statusInfo = "电芯类型不匹配!" + StringFormatHelper.getInstance().toHexString(result);
+                    batteryUpgradeInfo.statusInfo = "电芯类型不匹配:" + StringFormatHelper.getInstance().toHexString(result);
                     onUpgradeProgress.onUpgrade(batteryUpgradeInfo);
                     return;
                 }
                 if ((result[30] & 0xFF) != 0)
                 {
                     batteryUpgradeInfo.statusFlag = BatteryUpgradeStrategyStatus.FAILED;
-                    batteryUpgradeInfo.statusInfo = "电池型号不匹配!" + StringFormatHelper.getInstance().toHexString(result);
+                    batteryUpgradeInfo.statusInfo = "电池型号不匹配:" + StringFormatHelper.getInstance().toHexString(result);
                     onUpgradeProgress.onUpgrade(batteryUpgradeInfo);
                     return;
                 }
             } else
             {
                 batteryUpgradeInfo.statusFlag = BatteryUpgradeStrategyStatus.FAILED;
-                batteryUpgradeInfo.statusInfo = "电池信息无效!" + StringFormatHelper.getInstance().toHexString(result);
+                batteryUpgradeInfo.statusInfo = "电池信息无效:" + StringFormatHelper.getInstance().toHexString(result);
                 onUpgradeProgress.onUpgrade(batteryUpgradeInfo);
                 return;
             }
@@ -262,25 +279,22 @@ public class NuoWanBatteryUpgradeStrategy extends BatteryUpgradeStrategy
                 firmwareInfo[21] = (byte) (sum & 0xFF);
                 firmwareInfo[22] = (byte) (sum >> 8 & 0xFF);
                 System.out.println("新固件信息写入：" + StringFormatHelper.getInstance().toHexString(firmwareInfo));
-                System.out.println("总帧数：" + totalFrameSize);
                 deviceIoAction.write(firmwareInfo);
-                sleep(1500);
+                sleep(2000);// TODO: 2019-10-14 诺万厂商建议2S 
                 result = deviceIoAction.read();
-                System.out.println("新固件信息读取：" + StringFormatHelper.getInstance().toHexString(result));
                 batteryUpgradeInfo.totalPregress = totalFrameSize;
                 if (result != null && result.length > 6 && result[4] == (byte) 0xF6 && result[5] == 0x00)
                 {
                     batteryUpgradeInfo.statusFlag = BatteryUpgradeStrategyStatus.INIT_FIRMWARE_DATA;
-                    batteryUpgradeInfo.statusInfo = "新固件信息发送成功!";
+                    batteryUpgradeInfo.statusInfo = "新固件信息发送成功:" + StringFormatHelper.getInstance().toHexString(result);
                     onUpgradeProgress.onUpgrade(batteryUpgradeInfo);
                 } else
                 {
                     batteryUpgradeInfo.statusFlag = BatteryUpgradeStrategyStatus.FAILED;
-                    batteryUpgradeInfo.statusInfo = "新固件信息发送失败!" + StringFormatHelper.getInstance().toHexString(result);
+                    batteryUpgradeInfo.statusInfo = "新固件信息发送失败:" + StringFormatHelper.getInstance().toHexString(result);
                     onUpgradeProgress.onUpgrade(batteryUpgradeInfo);
                     return;
                 }
-
 
                 // TODO: 2019-09-02 开始循环写入数据帧
                 int loopCount = 1;
@@ -296,7 +310,6 @@ public class NuoWanBatteryUpgradeStrategy extends BatteryUpgradeStrategy
                     sum = calculateSum(firmwareData, 1, 134);
                     firmwareData[135] = (byte) (sum & 0xFF);
                     firmwareData[136] = (byte) (sum >> 8 & 0xFF);
-                    System.out.println(sn + "条：" + StringFormatHelper.getInstance().toHexString(firmwareData));
                     deviceIoAction.write(firmwareData);
                     offset++;
                     sleep(500);
@@ -359,25 +372,24 @@ public class NuoWanBatteryUpgradeStrategy extends BatteryUpgradeStrategy
                 activationBMS[6] = (byte) (sum & 0xFF);
                 activationBMS[7] = (byte) (sum >> 8 & 0xFF);
 
-                batteryUpgradeInfo.statusFlag = BatteryUpgradeStrategyStatus.ACTION_BMS;
-                batteryUpgradeInfo.currentPregress = totalFrameSize;
-                batteryUpgradeInfo.statusInfo = "开始激活...";
-                onUpgradeProgress.onUpgrade(batteryUpgradeInfo);
-
                 deviceIoAction.write(activationBMS);
                 sleep(100);
                 result = deviceIoAction.read();
+                batteryUpgradeInfo.currentPregress = totalFrameSize;
+                batteryUpgradeInfo.statusFlag = BatteryUpgradeStrategyStatus.ACTION_BMS;
+                batteryUpgradeInfo.statusInfo = "正在激活...";
+                onUpgradeProgress.onUpgrade(batteryUpgradeInfo);
                 System.out.println("激活读：" + StringFormatHelper.getInstance().toHexString(result));
+
+                sleep(500);
                 if (result != null && result.length > 6 && result[4] == (byte) 0xF4 && result[5] == 0x00)
                 {
+                    batteryUpgradeInfo.statusFlag = BatteryUpgradeStrategyStatus.SUCCESSED;
                     batteryUpgradeInfo.statusInfo = "激活成功!";
-                    onUpgradeProgress.onUpgrade(batteryUpgradeInfo);
                 } else
                 {
-                    // TODO: 2019-09-20 超时10S电池自动使用新程序
-                    sleep(10 * 1000);
-                    batteryUpgradeInfo.statusInfo = "激活成功!";
-                    onUpgradeProgress.onUpgrade(batteryUpgradeInfo);
+                    batteryUpgradeInfo.statusFlag = BatteryUpgradeStrategyStatus.FAILED;
+                    batteryUpgradeInfo.statusInfo = "激活失败!";
                 }
             }
         }
@@ -390,5 +402,9 @@ public class NuoWanBatteryUpgradeStrategy extends BatteryUpgradeStrategy
             batteryUpgradeInfo.totalPregress = totalFrameSizeTemp;
             onUpgradeProgress.onUpgrade(batteryUpgradeInfo);
         }
+
+        sleep(10 * 1000);
+        // TODO: 2019-09-20 超时10S电池自动使用新程序,同时推出485转发模式
+        onUpgradeProgress.onUpgrade(batteryUpgradeInfo);
     }
 }
