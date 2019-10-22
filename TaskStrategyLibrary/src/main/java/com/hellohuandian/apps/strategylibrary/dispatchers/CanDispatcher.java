@@ -28,6 +28,8 @@ final class CanDispatcher extends TaskDispatcher<TaskStrategy>
     private volatile boolean isLoop;
     private static final CanDispatcher CAN_DISPATCHER = new CanDispatcher();
     private final TaskStrategy pduLifeStrategy = new LifeStrategy((byte) 0x15);
+    private Thread canReadThread;
+    private Thread canWriteThread;
 
     private CanDispatcher()
     {
@@ -67,6 +69,40 @@ final class CanDispatcher extends TaskDispatcher<TaskStrategy>
         if (isLoop)
         {
             isLoop = false;
+
+            if (canReadThread != null)
+            {
+                if (canReadThread.isAlive())
+                {
+                    try
+                    {
+                        canReadThread.interrupt();
+                    }
+                    catch (Exception e)
+                    {
+                        e.printStackTrace();
+                    }
+                }
+                canReadThread = null;
+            }
+
+            if (canWriteThread != null)
+            {
+                if (canWriteThread.isAlive())
+                {
+                    try
+                    {
+                        canWriteThread.interrupt();
+                    }
+                    catch (Exception e)
+                    {
+                        e.printStackTrace();
+                    }
+                }
+                canWriteThread = null;
+            }
+
+            System.out.println("CAN分发线程停止isLoop：" + isLoop);
         }
     }
 
@@ -93,7 +129,7 @@ final class CanDispatcher extends TaskDispatcher<TaskStrategy>
 
     private void finalRead(final CanDeviceIoActionImpl canDeviceIoAction)
     {
-        Thread canReadThread = new Thread(new Runnable()
+        canReadThread = new Thread(new Runnable()
         {
             @Override
             public void run()
@@ -111,7 +147,7 @@ final class CanDispatcher extends TaskDispatcher<TaskStrategy>
 
     private void finalWrite(final CanDeviceIoActionImpl deviceIoAction)
     {
-        Thread canWriteThread = new Thread(new Runnable()
+        canWriteThread = new Thread(new Runnable()
         {
             @Override
             public void run()

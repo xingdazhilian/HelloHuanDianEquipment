@@ -7,7 +7,7 @@ import com.hellohuandian.apps.strategylibrary.strategies._data.BatteryData;
  * Create Date: 2019-09-17
  * Description:
  */
-public interface OnBatteryDataUpdate
+public interface OnBatteryDataUpdate<T extends BatteryData>
 {
-    void onUpdate(BatteryData batteryData);
+    void onUpdate(T batteryData);
 }

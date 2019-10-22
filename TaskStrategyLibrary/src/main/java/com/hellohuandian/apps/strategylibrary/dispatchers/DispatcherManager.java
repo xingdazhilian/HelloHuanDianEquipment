@@ -100,6 +100,7 @@ public final class DispatcherManager
         if (taskDispatcher != null)
         {
             taskDispatcher.stop();
+            SerialPortDispatcher.getInstance().stop();
         }
     }
 

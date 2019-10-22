@@ -389,7 +389,7 @@ public class NuoWanBatteryUpgradeStrategy extends BatteryUpgradeStrategy
                 } else
                 {
                     batteryUpgradeInfo.statusFlag = BatteryUpgradeStrategyStatus.FAILED;
-                    batteryUpgradeInfo.statusInfo = "激活失败!";
+                     batteryUpgradeInfo.statusInfo = "激活失败!";
                 }
             }
         }

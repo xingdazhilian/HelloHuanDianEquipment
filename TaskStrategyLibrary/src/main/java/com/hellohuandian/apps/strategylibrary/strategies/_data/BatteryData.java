@@ -4,6 +4,7 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 
 import androidx.annotation.IntDef;
+import androidx.annotation.Nullable;
 
 /**
  * Author:      Lee Yeung
@@ -27,5 +28,23 @@ public abstract class BatteryData
         this.address = address;
     }
 
-    public abstract @BatteryDataType int getBatteryDataType();
+    public abstract @BatteryDataType
+    int getBatteryDataType();
+
+    @Override
+    public int hashCode()
+    {
+        return address;
+    }
+
+    @Override
+    public boolean equals(@Nullable Object obj)
+    {
+        return obj instanceof BatteryData ? ((BatteryData) obj).address == address : super.equals(obj);
+    }
+
+    public String toSimpleString()
+    {
+        return null;
+    }
 }

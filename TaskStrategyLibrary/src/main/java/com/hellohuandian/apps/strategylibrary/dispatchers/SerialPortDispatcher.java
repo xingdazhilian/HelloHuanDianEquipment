@@ -102,6 +102,7 @@ final class SerialPortDispatcher extends TaskDispatcher<TaskStrategy>
         if (isLoop)
         {
             isLoop = false;
+            clear();
             System.out.println("串口分发线程停止isLoop：" + isLoop);
             SerialPortDeviceController.getInstance().stop();
 

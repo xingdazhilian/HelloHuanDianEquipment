@@ -85,7 +85,7 @@ public class BatteryDataStrategy extends ProtocolStrategy
             @Override
             public void accept(byte[] bytes)
             {
-                if (bytes != null && bytes.length == 16)
+                if (bytes != null && bytes.length == 16)//一帧只能受到16个字节
                 {
                     if (bytes[8] == 0x10)
                     {
@@ -107,8 +107,12 @@ public class BatteryDataStrategy extends ProtocolStrategy
                         if (position >= realLen)
                         {
                             position = 0;
+                            isReceive = false;
                             // TODO: 2019-09-24 数据包收集完毕
-                            parse(result);
+                            if (result[0] == address)
+                            {
+                                parse(result);
+                            }
                         }
                     }
                 }
@@ -139,7 +143,7 @@ public class BatteryDataStrategy extends ProtocolStrategy
      */
     private void parse(byte[] bytes)
     {
-//        System.out.println(address + "号读取：" + StringFormatHelper.getInstance().toHexString(bytes));
+        System.out.println(address + "号读取：" + StringFormatHelper.getInstance().toHexString(bytes));
         batteryInfo.reset();
 
         if (bytes != null && bytes.length > 0)
@@ -170,16 +174,21 @@ public class BatteryDataStrategy extends ProtocolStrategy
     }
 
     /**
-     * 解析门锁状态
+     * 解析门锁微动状态
      *
      * @param bytes
      */
     private void parseDoorLockStatus(byte[] bytes)
     {
-        if (bytes.length > 3)
+        if (bytes.length > 4)
         {
-            byte doorLockStatus = bytes[3];
-            batteryInfo.setDoorLockStatus(doorLockStatus);
+            byte doorLockStatus = bytes[4];
+            // TODO: 2019-10-17 注意！侧微动值和底微动值是反的，
+            //  有电池的情况:底微动值为1，没电池为0；
+            //            :侧微动值为0，没电池为1；
+            //  所以解析也是反的。
+            batteryInfo.setDoorSideLockStatus((byte) ((doorLockStatus & 0b0100) == 0 ? 1 : 0));
+            batteryInfo.setDoorBottomLockStatus((byte) (doorLockStatus & 0b0001));
         }
     }
 
@@ -190,11 +199,11 @@ public class BatteryDataStrategy extends ProtocolStrategy
      */
     private void parseElectricMachineStatus(byte[] bytes)
     {
-        if (bytes.length > 4)
-        {
-            byte electricMachineStatus = bytes[4];
-            batteryInfo.setElectricMachineStatus(electricMachineStatus);
-        }
+        //        if (bytes.length > 4)
+        //        {
+        //            byte electricMachineStatus = bytes[4];
+        //            batteryInfo.setElectricMachineStatus(electricMachineStatus);
+        //        }
     }
 
     /**
