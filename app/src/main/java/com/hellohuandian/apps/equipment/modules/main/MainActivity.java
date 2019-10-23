@@ -23,4 +23,11 @@ public class MainActivity extends AppBaseActivity
         ViewModelProviders.of(this).get(BatteryViewModel.class);
         startService(new Intent(this, StrategyService.class));
     }
+
+    @Override
+    protected void onDestroy()
+    {
+        super.onDestroy();
+        stopService(new Intent(this, StrategyService.class));
+    }
 }

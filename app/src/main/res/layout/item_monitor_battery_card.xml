@@ -105,8 +105,6 @@
         android:layout_below="@id/tv_idLabel"
         android:layout_alignTop="@+id/tv_batteryLockInfoLabel"
         android:layout_toRightOf="@+id/tv_batteryLockInfoLabel"
-        android:text="没电池"
-        android:textColor="@color/colorBlack"
         android:textSize="16sp"
         />
 
@@ -117,8 +115,6 @@
         android:layout_height="wrap_content"
         android:layout_below="@id/tv_batteryLockMicroswitch"
         android:layout_toRightOf="@+id/tv_batteryLockInfoLabel"
-        android:text="没电池"
-        android:textColor="@color/colorBlack"
         android:textSize="16sp"
         />
 </RelativeLayout>

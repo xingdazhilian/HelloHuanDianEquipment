@@ -28,6 +28,7 @@ public class BatteryViewModel extends AndroidViewModel implements BatteryWatcher
     @Override
     protected void onCleared()
     {
+        StrategyService.BatteryWatcherRegisters.unRegister(this);
     }
 
     @Override

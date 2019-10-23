@@ -2,6 +2,7 @@ package com.hellohuandian.apps.strategylibrary.strategies.upgrade.battery;
 
 import com.hellohuandian.apps.controllerlibrary.DeviceIoAction;
 import com.hellohuandian.apps.strategylibrary.strategies._base.NodeStrategy;
+import com.hellohuandian.apps.strategylibrary.strategies.battery.OnBatteryDataUpdate;
 
 /**
  * Author:      Lee Yeung
@@ -12,7 +13,7 @@ public abstract class BatteryUpgradeStrategy extends NodeStrategy
 {
     protected final String filePath;
 
-    protected OnUpgradeProgress onUpgradeProgress;
+    protected OnBatteryDataUpdate onBatteryDataUpdate;
 
     public BatteryUpgradeStrategy(byte address, String filePath)
     {
@@ -20,23 +21,28 @@ public abstract class BatteryUpgradeStrategy extends NodeStrategy
         this.filePath = filePath;
     }
 
-    public void setOnUpgradeProgress(OnUpgradeProgress onUpgradeProgress)
+    public void setOnBatteryDataUpdate(OnBatteryDataUpdate onBatteryDataUpdate)
     {
-        this.onUpgradeProgress = onUpgradeProgress;
+        this.onBatteryDataUpdate = onBatteryDataUpdate;
+    }
+
+    public OnBatteryDataUpdate getOnBatteryDataUpdate()
+    {
+        return onBatteryDataUpdate;
     }
 
     /**
      * 升级
      *
-     * @param deviceIoAction    设备iO操作，提供io功能
-     * @param onUpgradeProgress 读写信息回调
+     * @param deviceIoAction      设备iO操作，提供io功能
+     * @param onBatteryDataUpdate 读写信息回调
      */
-    protected abstract void upgrade(DeviceIoAction deviceIoAction, OnUpgradeProgress onUpgradeProgress);
+    protected abstract void upgrade(DeviceIoAction deviceIoAction, OnBatteryDataUpdate onBatteryDataUpdate);
 
     @Override
     public void execute(DeviceIoAction deviceIoAction)
     {
-        upgrade(deviceIoAction, onUpgradeProgress);
+        upgrade(deviceIoAction, onBatteryDataUpdate);
         // TODO: 2019-10-10 升级完成之后执行下一个策略
         nextCall();
     }

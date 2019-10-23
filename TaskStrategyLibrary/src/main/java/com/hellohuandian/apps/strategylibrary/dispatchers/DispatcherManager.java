@@ -113,6 +113,25 @@ public final class DispatcherManager
     {
         if (taskStrategy instanceof BatteryUpgradeStrategy)
         {
+            BatteryUpgradeStrategy batteryUpgradeStrategy = (BatteryUpgradeStrategy) taskStrategy;
+            final OnBatteryDataUpdate innerOnBatteryDataUpdate = batteryUpgradeStrategy.getOnBatteryDataUpdate();
+            batteryUpgradeStrategy.setOnBatteryDataUpdate(new OnBatteryDataUpdate()
+            {
+                @Override
+                public void onUpdate(BatteryData batteryData)
+                {
+                    // TODO: 2019-10-23 升级信息先发送给监视器去执行过滤 
+                    if (onBatteryDataUpdate != null)
+                    {
+                        onBatteryDataUpdate.onUpdate(batteryData);
+                    }
+                    // TODO: 2019-10-23 执行真实的接口对象回调
+                    if (innerOnBatteryDataUpdate != null)
+                    {
+                        innerOnBatteryDataUpdate.onUpdate(batteryData);
+                    }
+                }
+            });
             SerialPortDispatcher.getInstance().dispatch(taskStrategy);
         } else
         {

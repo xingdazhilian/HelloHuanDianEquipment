@@ -51,6 +51,7 @@ public class StrategyService extends Service implements OnBatteryDataUpdate
     {
         super.onCreate();
         BatteriesMonitor.getInstance().addOnBatteryDataUpdate(this);
+        BatteriesMonitor.getInstance().start();
         ScManager.getInstance().init(MachineVersionConfig.getMachineVersion());
         ScManager.getInstance().start();
         System.out.println("策略服务启动");

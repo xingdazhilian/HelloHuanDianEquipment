@@ -50,6 +50,14 @@ public final class BatteriesMonitor implements OnBatteryDataUpdate
                 chargingUnit.charging(batteryData);
             }
         });
+        batteryDataChangeFilter.setBatteryUpgradeConsumer(new Consumer<BatteryData>()
+        {
+            @Override
+            public void accept(BatteryData batteryData)
+            {
+                onUpdateDispatch(batteryData);
+            }
+        });
     }
 
     public void addOnBatteryDataUpdate(OnBatteryDataUpdate onBatteryDataUpdate)
@@ -89,17 +97,6 @@ public final class BatteriesMonitor implements OnBatteryDataUpdate
     @Override
     public void onUpdate(BatteryData batteryData)
     {
-        if (batteryData != null)
-        {
-            switch (batteryData.getBatteryDataType())
-            {
-                case BatteryData.BatteryDataType.UPGRADE:
-                    onUpdateDispatch(batteryData);
-                    break;
-                case BatteryData.BatteryDataType.INFO:
-                    batteryDataChangeFilter.accept(batteryData);
-                    break;
-            }
-        }
+        batteryDataChangeFilter.accept(batteryData);
     }
 }

@@ -13,15 +13,15 @@ import com.hellohuandian.apps.equipment.widgets.dialog.AppDialog;
 import com.hellohuandian.apps.strategylibrary.config.MachineVersion;
 import com.hellohuandian.apps.strategylibrary.dispatchers.DispatcherManager;
 import com.hellohuandian.apps.strategylibrary.strategies._base.NodeStrategy;
+import com.hellohuandian.apps.strategylibrary.strategies._data.BatteryData;
 import com.hellohuandian.apps.strategylibrary.strategies.activation.Action485;
+import com.hellohuandian.apps.strategylibrary.strategies.battery.OnBatteryDataUpdate;
 import com.hellohuandian.apps.strategylibrary.strategies.pushRod.OnPushAction;
 import com.hellohuandian.apps.strategylibrary.strategies.pushRod.PushRodStrategy;
 import com.hellohuandian.apps.strategylibrary.strategies.relay.RelayCloseStrategy;
-import com.hellohuandian.apps.strategylibrary.strategies.upgrade.battery.BatteryUpgradeInfo;
 import com.hellohuandian.apps.strategylibrary.strategies.upgrade.battery.BatteryUpgradeStrategy;
 import com.hellohuandian.apps.strategylibrary.strategies.upgrade.battery.JieMinKe.JieMinKeBatteryUpgradeStrategy;
 import com.hellohuandian.apps.strategylibrary.strategies.upgrade.battery.NuoWan.NuoWanBatteryUpgradeStrategy;
-import com.hellohuandian.apps.strategylibrary.strategies.upgrade.battery.OnUpgradeProgress;
 
 import androidx.annotation.Nullable;
 import androidx.core.util.Consumer;
@@ -161,17 +161,17 @@ public class MonitorFragment extends AppBaseFragment implements View.OnClickList
                 System.out.println("开始升级");
                 BatteryUpgradeStrategy batteryUpgradeStrategy = new JieMinKeBatteryUpgradeStrategy((byte) 0x05, "/sdcard/Download" +
                         "/HelloBMS19S_HW0101_FW0159_CRCCF220E3D_BT00000000.bin");
-                batteryUpgradeStrategy.setOnUpgradeProgress(new OnUpgradeProgress()
-                {
-                    @Override
-                    public void onUpgrade(BatteryUpgradeInfo batteryUpgradeInfo)
-                    {
-                        if (batteryViewModel != null)
-                        {
-                            batteryViewModel.batteryMonitorLiveData.postValue(batteryUpgradeInfo);
-                        }
-                    }
-                });
+                //                batteryUpgradeStrategy.setOnUpgradeProgress(new OnUpgradeProgress()
+                //                {
+                //                    @Override
+                //                    public void onUpgrade(BatteryUpgradeInfo batteryUpgradeInfo)
+                //                    {
+                //                        if (batteryViewModel != null)
+                //                        {
+                //                            batteryViewModel.batteryMonitorLiveData.postValue(batteryUpgradeInfo);
+                //                        }
+                //                    }
+                //                });
 
                 batteryUpgradeStrategy.addNext(new Action485((byte) 0x05))
                         .first()
@@ -207,19 +207,8 @@ public class MonitorFragment extends AppBaseFragment implements View.OnClickList
                 }
                 System.out.println("开始升级");
                 BatteryUpgradeStrategy batteryUpgradeStrategy = new NuoWanBatteryUpgradeStrategy((byte) 0x05, "/sdcard/Download" +
-//                        "/60V_19_V006.bin");
-                        "/60V_19_V250.bin");
-                batteryUpgradeStrategy.setOnUpgradeProgress(new OnUpgradeProgress()
-                {
-                    @Override
-                    public void onUpgrade(BatteryUpgradeInfo batteryUpgradeInfo)
-                    {
-                        if (batteryViewModel != null)
-                        {
-                            batteryViewModel.batteryMonitorLiveData.postValue(batteryUpgradeInfo);
-                        }
-                    }
-                });
+                        //                        "/60V_19_V006.bin");
+                        "/48V_V018_20191023.bin");
 
                 batteryUpgradeStrategy.addNext(new Action485((byte) 0x05))
                         .first()
@@ -243,7 +232,7 @@ public class MonitorFragment extends AppBaseFragment implements View.OnClickList
         switch (v.getId())
         {
             case R.id.tv_exitApp:
-                Runtime.getRuntime().exit(0);
+                getActivity().finish();
                 break;
         }
     }

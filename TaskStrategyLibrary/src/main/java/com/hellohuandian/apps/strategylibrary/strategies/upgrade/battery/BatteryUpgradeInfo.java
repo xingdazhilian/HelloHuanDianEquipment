@@ -9,7 +9,8 @@ import com.hellohuandian.apps.strategylibrary.strategies._data.BatteryData;
  */
 public class BatteryUpgradeInfo extends BatteryData
 {
-    public @BatteryUpgradeStrategyStatus int statusFlag;
+    public @BatteryUpgradeStrategyStatus
+    int statusFlag;
     public String statusInfo;
     public long currentPregress;
     public long totalPregress;
@@ -25,4 +26,9 @@ public class BatteryUpgradeInfo extends BatteryData
         return BatteryDataType.UPGRADE;
     }
 
+    @Override
+    public String toSimpleString()
+    {
+        return statusInfo;
+    }
 }

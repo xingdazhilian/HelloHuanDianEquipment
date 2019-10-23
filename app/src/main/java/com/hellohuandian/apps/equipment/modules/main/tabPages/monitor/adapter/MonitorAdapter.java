@@ -129,6 +129,10 @@ public class MonitorAdapter extends BaseRecycleAdapter<BatteryData, BaseRecycleA
         TextView tvId;
         @BindView(R.id.tv_batterySimpleInfo)
         TextView tvBatterySimpleInfo;
+        @BindView(R.id.tv_batteryLockMicroswitch)
+        TextView tvBatteryLockMicroswitch;
+        @BindView(R.id.tv_batterySideMicroswitch)
+        TextView tvBatterySideMicroswitch;
 
         private BatteryInfo modelBatteryInfo;
 
@@ -153,6 +157,40 @@ public class MonitorAdapter extends BaseRecycleAdapter<BatteryData, BaseRecycleA
                         + modelBatteryInfo.str_batteryTemperature + "\n"
                         + "sv" + modelBatteryInfo.softwareVersion + ",hv" + modelBatteryInfo.hardwareVersion + "\n"
                         + "BMS-" + modelBatteryInfo._BMS_manufacturer);
+                if (!TextUtils.isEmpty(modelBatteryInfo.str_doorBottomLockStatus))
+                {
+                    if (modelBatteryInfo.doorBottomLockStatus == 1)
+                    {
+                        if (tvBatteryLockMicroswitch.getCurrentTextColor() != Color.GREEN)
+                        {
+                            tvBatteryLockMicroswitch.setTextColor(Color.GREEN);
+                        }
+                    } else
+                    {
+                        if (tvBatteryLockMicroswitch.getCurrentTextColor() != Color.RED)
+                        {
+                            tvBatteryLockMicroswitch.setTextColor(Color.RED);
+                        }
+                    }
+                    tvBatteryLockMicroswitch.setText(modelBatteryInfo.str_doorBottomLockStatus);
+                }
+                if (!TextUtils.isEmpty(modelBatteryInfo.str_doorSideLockStatus))
+                {
+                    if (modelBatteryInfo.doorSideLockStatus == 1)
+                    {
+                        if (tvBatterySideMicroswitch.getCurrentTextColor() != Color.GREEN)
+                        {
+                            tvBatterySideMicroswitch.setTextColor(Color.GREEN);
+                        }
+                    } else
+                    {
+                        if (tvBatterySideMicroswitch.getCurrentTextColor() != Color.RED)
+                        {
+                            tvBatterySideMicroswitch.setTextColor(Color.RED);
+                        }
+                    }
+                    tvBatterySideMicroswitch.setText(modelBatteryInfo.str_doorSideLockStatus);
+                }
             }
         }
 

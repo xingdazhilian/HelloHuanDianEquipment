@@ -3,10 +3,10 @@ package com.hellohuandian.apps.strategylibrary.strategies.upgrade.battery.JieMin
 import android.text.TextUtils;
 
 import com.hellohuandian.apps.controllerlibrary.DeviceIoAction;
+import com.hellohuandian.apps.strategylibrary.strategies.battery.OnBatteryDataUpdate;
 import com.hellohuandian.apps.strategylibrary.strategies.upgrade.battery.BatteryUpgradeInfo;
 import com.hellohuandian.apps.strategylibrary.strategies.upgrade.battery.BatteryUpgradeStrategy;
 import com.hellohuandian.apps.strategylibrary.strategies.upgrade.battery.BatteryUpgradeStrategyStatus;
-import com.hellohuandian.apps.strategylibrary.strategies.upgrade.battery.OnUpgradeProgress;
 import com.hellohuandian.apps.utillibrary.StringFormatHelper;
 
 import java.io.File;
@@ -56,18 +56,18 @@ public class JieMinKeBatteryUpgradeStrategy extends BatteryUpgradeStrategy
         super(address, filePath);
     }
 
-    private OnUpgradeProgress mapOnUpgradeProgressImpl(final OnUpgradeProgress onUpgradeProgress)
+    private OnBatteryDataUpdate mapOnBatteryDataUpdateImpl(final OnBatteryDataUpdate onBatteryDataUpdate)
     {
-        return new OnUpgradeProgress()
+        return new OnBatteryDataUpdate<BatteryUpgradeInfo>()
         {
-            private final OnUpgradeProgress innerOnUpgradeProgress = onUpgradeProgress;
+            private final OnBatteryDataUpdate innerOnBatteryDataUpdate = onBatteryDataUpdate;
 
             @Override
-            public void onUpgrade(BatteryUpgradeInfo batteryUpgradeInfo)
+            public void onUpdate(BatteryUpgradeInfo batteryUpgradeInfo)
             {
-                if (innerOnUpgradeProgress != null)
+                if (innerOnBatteryDataUpdate != null)
                 {
-                    innerOnUpgradeProgress.onUpgrade(batteryUpgradeInfo);
+                    innerOnBatteryDataUpdate.onUpdate(batteryUpgradeInfo);
                     System.out.println(batteryUpgradeInfo.statusInfo);
                     if (batteryUpgradeInfo.statusFlag == BatteryUpgradeStrategyStatus.FAILED)
                     {
@@ -79,13 +79,14 @@ public class JieMinKeBatteryUpgradeStrategy extends BatteryUpgradeStrategy
     }
 
     @Override
-    public void upgrade(DeviceIoAction deviceIoAction, OnUpgradeProgress onUpgradeProgress)
+    public void upgrade(DeviceIoAction deviceIoAction, OnBatteryDataUpdate onBatteryDataUpdate)
     {
-        if (deviceIoAction == null || onUpgradeProgress == null)
+        if (deviceIoAction == null || onBatteryDataUpdate == null)
         {
+            sleep(10 * 1000);
             return;
         }
-        onUpgradeProgress = mapOnUpgradeProgressImpl(onUpgradeProgress);
+        onBatteryDataUpdate = mapOnBatteryDataUpdateImpl(onBatteryDataUpdate);
 
         short snTemp = 0;
         int totalFrameSizeTemp = 0;
@@ -110,12 +111,13 @@ public class JieMinKeBatteryUpgradeStrategy extends BatteryUpgradeStrategy
             {
                 batteryUpgradeInfo.statusFlag = BatteryUpgradeStrategyStatus.WAITTING;
                 batteryUpgradeInfo.statusInfo = "激活485转发成功:" + StringFormatHelper.getInstance().toHexString(result);
-                onUpgradeProgress.onUpgrade(batteryUpgradeInfo);
+                onBatteryDataUpdate.onUpdate(batteryUpgradeInfo);
             } else
             {
                 batteryUpgradeInfo.statusFlag = BatteryUpgradeStrategyStatus.FAILED;
                 batteryUpgradeInfo.statusInfo = "激活485转发失败:" + StringFormatHelper.getInstance().toHexString(result);
-                onUpgradeProgress.onUpgrade(batteryUpgradeInfo);
+                onBatteryDataUpdate.onUpdate(batteryUpgradeInfo);
+                sleep(10 * 1000);
                 return;
             }
 
@@ -123,7 +125,8 @@ public class JieMinKeBatteryUpgradeStrategy extends BatteryUpgradeStrategy
             {
                 batteryUpgradeInfo.statusFlag = BatteryUpgradeStrategyStatus.FAILED;
                 batteryUpgradeInfo.statusInfo = "升级文件路径为空";
-                onUpgradeProgress.onUpgrade(batteryUpgradeInfo);
+                onBatteryDataUpdate.onUpdate(batteryUpgradeInfo);
+                sleep(10 * 1000);
                 return;
             }
             File file = new File(filePath);
@@ -131,7 +134,8 @@ public class JieMinKeBatteryUpgradeStrategy extends BatteryUpgradeStrategy
             {
                 batteryUpgradeInfo.statusFlag = BatteryUpgradeStrategyStatus.FAILED;
                 batteryUpgradeInfo.statusInfo = "升级文件不存在:" + file.getAbsolutePath();
-                onUpgradeProgress.onUpgrade(batteryUpgradeInfo);
+                onBatteryDataUpdate.onUpdate(batteryUpgradeInfo);
+                sleep(10 * 1000);
                 return;
             }
 
@@ -145,7 +149,8 @@ public class JieMinKeBatteryUpgradeStrategy extends BatteryUpgradeStrategy
                 e.printStackTrace();
                 batteryUpgradeInfo.statusFlag = BatteryUpgradeStrategyStatus.FAILED;
                 batteryUpgradeInfo.statusInfo = "升级文件没有找到!\n" + e.getLocalizedMessage();
-                onUpgradeProgress.onUpgrade(batteryUpgradeInfo);
+                onBatteryDataUpdate.onUpdate(batteryUpgradeInfo);
+                sleep(10 * 1000);
                 return;
             }
 
@@ -153,7 +158,8 @@ public class JieMinKeBatteryUpgradeStrategy extends BatteryUpgradeStrategy
             {
                 batteryUpgradeInfo.statusFlag = BatteryUpgradeStrategyStatus.FAILED;
                 batteryUpgradeInfo.statusInfo = "升级文件流为null!";
-                onUpgradeProgress.onUpgrade(batteryUpgradeInfo);
+                onBatteryDataUpdate.onUpdate(batteryUpgradeInfo);
+                sleep(10 * 1000);
                 return;
             }
 
@@ -179,12 +185,13 @@ public class JieMinKeBatteryUpgradeStrategy extends BatteryUpgradeStrategy
             {
                 batteryUpgradeInfo.statusFlag = BatteryUpgradeStrategyStatus.BOOT_LOADER_MODE;
                 batteryUpgradeInfo.statusInfo = "进入BootLoader模式成功:" + StringFormatHelper.getInstance().toHexString(result);
-                onUpgradeProgress.onUpgrade(batteryUpgradeInfo);
+                onBatteryDataUpdate.onUpdate(batteryUpgradeInfo);
             } else
             {
                 batteryUpgradeInfo.statusFlag = BatteryUpgradeStrategyStatus.FAILED;
                 batteryUpgradeInfo.statusInfo = "进入BootLoader模式失败:" + StringFormatHelper.getInstance().toHexString(result);
-                onUpgradeProgress.onUpgrade(batteryUpgradeInfo);
+                onBatteryDataUpdate.onUpdate(batteryUpgradeInfo);
+                sleep(10 * 1000);
                 return;
             }
 
@@ -201,35 +208,40 @@ public class JieMinKeBatteryUpgradeStrategy extends BatteryUpgradeStrategy
                 {
                     batteryUpgradeInfo.statusFlag = BatteryUpgradeStrategyStatus.FAILED;
                     batteryUpgradeInfo.statusInfo = "BMS厂商不匹配:" + StringFormatHelper.getInstance().toHexString(result);
-                    onUpgradeProgress.onUpgrade(batteryUpgradeInfo);
+                    onBatteryDataUpdate.onUpdate(batteryUpgradeInfo);
+                    sleep(10 * 1000);
                     return;
                 }
                 if ((result[28] & 0xFF) != 0)
                 {
                     batteryUpgradeInfo.statusFlag = BatteryUpgradeStrategyStatus.FAILED;
                     batteryUpgradeInfo.statusInfo = "电池厂商不匹配:" + StringFormatHelper.getInstance().toHexString(result);
-                    onUpgradeProgress.onUpgrade(batteryUpgradeInfo);
+                    onBatteryDataUpdate.onUpdate(batteryUpgradeInfo);
+                    sleep(10 * 1000);
                     return;
                 }
                 if ((result[29] & 0xFF) != 0)
                 {
                     batteryUpgradeInfo.statusFlag = BatteryUpgradeStrategyStatus.FAILED;
                     batteryUpgradeInfo.statusInfo = "电芯类型不匹配:" + StringFormatHelper.getInstance().toHexString(result);
-                    onUpgradeProgress.onUpgrade(batteryUpgradeInfo);
+                    onBatteryDataUpdate.onUpdate(batteryUpgradeInfo);
+                    sleep(10 * 1000);
                     return;
                 }
                 if ((result[30] & 0xFF) != 0)
                 {
                     batteryUpgradeInfo.statusFlag = BatteryUpgradeStrategyStatus.FAILED;
                     batteryUpgradeInfo.statusInfo = "电池型号不匹配:" + StringFormatHelper.getInstance().toHexString(result);
-                    onUpgradeProgress.onUpgrade(batteryUpgradeInfo);
+                    onBatteryDataUpdate.onUpdate(batteryUpgradeInfo);
+                    sleep(10 * 1000);
                     return;
                 }
             } else
             {
                 batteryUpgradeInfo.statusFlag = BatteryUpgradeStrategyStatus.FAILED;
                 batteryUpgradeInfo.statusInfo = "电池信息无效:" + StringFormatHelper.getInstance().toHexString(result);
-                onUpgradeProgress.onUpgrade(batteryUpgradeInfo);
+                onBatteryDataUpdate.onUpdate(batteryUpgradeInfo);
+                sleep(10 * 1000);
                 return;
             }
 
@@ -289,13 +301,14 @@ public class JieMinKeBatteryUpgradeStrategy extends BatteryUpgradeStrategy
                     batteryUpgradeInfo.statusFlag = BatteryUpgradeStrategyStatus.INIT_FIRMWARE_DATA;
                     batteryUpgradeInfo.statusInfo = "新固件信息发送成功:" + StringFormatHelper.getInstance().toHexString(result);
                     System.out.println(batteryUpgradeInfo.statusInfo);
-                    onUpgradeProgress.onUpgrade(batteryUpgradeInfo);
+                    onBatteryDataUpdate.onUpdate(batteryUpgradeInfo);
                 } else
                 {
                     batteryUpgradeInfo.statusFlag = BatteryUpgradeStrategyStatus.FAILED;
                     batteryUpgradeInfo.statusInfo = "新固件信息发送失败:" + StringFormatHelper.getInstance().toHexString(result);
                     System.out.println(batteryUpgradeInfo.statusInfo);
-                    onUpgradeProgress.onUpgrade(batteryUpgradeInfo);
+                    onBatteryDataUpdate.onUpdate(batteryUpgradeInfo);
+                    sleep(10 * 1000);
                     return;
                 }
 
@@ -323,12 +336,13 @@ public class JieMinKeBatteryUpgradeStrategy extends BatteryUpgradeStrategy
                     {
                         batteryUpgradeInfo.statusFlag = BatteryUpgradeStrategyStatus.WRITE_DATA;
                         batteryUpgradeInfo.statusInfo = "发送" + sn + "条成功";
-                        onUpgradeProgress.onUpgrade(batteryUpgradeInfo);
+                        onBatteryDataUpdate.onUpdate(batteryUpgradeInfo);
                     } else
                     {
                         batteryUpgradeInfo.statusFlag = BatteryUpgradeStrategyStatus.FAILED;
                         batteryUpgradeInfo.statusInfo = "发送" + sn + "条失败! 错误数据：" + StringFormatHelper.getInstance().toHexString(result);
-                        onUpgradeProgress.onUpgrade(batteryUpgradeInfo);
+                        onBatteryDataUpdate.onUpdate(batteryUpgradeInfo);
+                        sleep(10 * 1000);
                         return;
                     }
                 }
@@ -364,12 +378,13 @@ public class JieMinKeBatteryUpgradeStrategy extends BatteryUpgradeStrategy
                     {
                         batteryUpgradeInfo.statusFlag = BatteryUpgradeStrategyStatus.WRITE_DATA;
                         batteryUpgradeInfo.statusInfo = "发送" + sn + "条成功";
-                        onUpgradeProgress.onUpgrade(batteryUpgradeInfo);
+                        onBatteryDataUpdate.onUpdate(batteryUpgradeInfo);
                     } else
                     {
                         batteryUpgradeInfo.statusFlag = BatteryUpgradeStrategyStatus.FAILED;
                         batteryUpgradeInfo.statusInfo = "发送" + sn + "条失败! 错误数据：" + StringFormatHelper.getInstance().toHexString(result);
-                        onUpgradeProgress.onUpgrade(batteryUpgradeInfo);
+                        onBatteryDataUpdate.onUpdate(batteryUpgradeInfo);
+                        sleep(10 * 1000);
                         return;
                     }
                 }
@@ -386,7 +401,7 @@ public class JieMinKeBatteryUpgradeStrategy extends BatteryUpgradeStrategy
                 batteryUpgradeInfo.currentPregress = totalFrameSize;
                 batteryUpgradeInfo.statusFlag = BatteryUpgradeStrategyStatus.ACTION_BMS;
                 batteryUpgradeInfo.statusInfo = "正在激活...";
-                onUpgradeProgress.onUpgrade(batteryUpgradeInfo);
+                onBatteryDataUpdate.onUpdate(batteryUpgradeInfo);
                 sleep(500);
                 System.out.println("激活读：" + StringFormatHelper.getInstance().toHexString(result));
                 // TODO: 2019-09-20 超时10S电池自动使用新程序,同时推出485转发模式
@@ -401,10 +416,10 @@ public class JieMinKeBatteryUpgradeStrategy extends BatteryUpgradeStrategy
             batteryUpgradeInfo.statusInfo = "升级IO异常\n" + e.getLocalizedMessage();
             batteryUpgradeInfo.currentPregress = snTemp;
             batteryUpgradeInfo.totalPregress = totalFrameSizeTemp;
-            onUpgradeProgress.onUpgrade(batteryUpgradeInfo);
+            onBatteryDataUpdate.onUpdate(batteryUpgradeInfo);
         }
 
         sleep(10 * 1000);
-        onUpgradeProgress.onUpgrade(batteryUpgradeInfo);
+        onBatteryDataUpdate.onUpdate(batteryUpgradeInfo);
     }
 }
