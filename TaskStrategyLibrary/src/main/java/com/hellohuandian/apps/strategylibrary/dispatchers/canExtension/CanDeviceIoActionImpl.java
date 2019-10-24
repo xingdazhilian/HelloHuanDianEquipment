@@ -1,8 +1,12 @@
 package com.hellohuandian.apps.strategylibrary.dispatchers.canExtension;
 
+import android.os.SystemClock;
+
 import com.hellohuandian.apps.controllerlibrary.DeviceIoAction;
 
 import java.io.IOException;
+import java.sql.SQLOutput;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import androidx.core.util.Consumer;
@@ -12,8 +16,11 @@ import androidx.core.util.Consumer;
  * Create Date: 2019-09-24
  * Description: can通讯io具体实现，同时负责数据映射传递到匹配策略对象上
  */
-public final class CanDeviceIoActionImpl extends ConcurrentHashMap<Integer, Consumer<byte[]>> implements CanDeviceIoAction
+public final class CanDeviceIoActionImpl implements CanDeviceIoAction
 {
+    private final ConcurrentHashMap<Integer, Consumer<byte[]>> registerMap = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<Integer, Long> timeOutMap = new ConcurrentHashMap<>();
+
     private final DeviceIoAction deviceIoAction;
     private final int LEN_16 = 16;
 
@@ -62,24 +69,52 @@ public final class CanDeviceIoActionImpl extends ConcurrentHashMap<Integer, Cons
                     resultId = result[0];
                 }
             }
-            Consumer<byte[]> consumer = get(resultId);
+            Consumer<byte[]> consumer = registerMap.get(resultId);
             if (consumer != null)
             {
                 consumer.accept(result);
             }
         }
+
+        checkTimeOut(SystemClock.elapsedRealtime());
+    }
+
+    private void checkTimeOut(final long currentTimeMillis)
+    {
+        if (!timeOutMap.isEmpty())
+        {
+            for (Map.Entry<Integer, Long> entry : timeOutMap.entrySet())
+            {
+                if (currentTimeMillis > entry.getValue())
+                {
+                    final int resultId = entry.getKey();
+                    Consumer<byte[]> consumer = registerMap.get(resultId);
+                    if (consumer != null)
+                    {
+                        consumer.accept(null);
+                    }
+                }
+            }
+        }
+    }
+
+    @Override
+    public void registerTimeOut(int id, long timeOutValue)
+    {
+        timeOutMap.put(id, timeOutValue);
     }
 
     @Override
     public void register(int id, Consumer<byte[]> consumer)
     {
-        put(id, consumer);
+        registerMap.put(id, consumer);
     }
 
     @Override
     public void unRegister(int id)
     {
-        remove(id);
+        registerMap.remove(id);
+        timeOutMap.remove(id);
     }
 
     @Override

@@ -365,7 +365,7 @@ public class NuoWanBatteryUpgradeStrategy extends BatteryUpgradeStrategy
                     lastData[++end] = 0x0A;
 
                     deviceIoAction.write(lastData);
-                    sleep(5000);
+                    sleep(3000);
                     result = deviceIoAction.read();
                     if (result != null && result.length > 6 && result[4] == (byte) 0xF7 && result[5] == 0x00)
                     {

@@ -11,7 +11,9 @@ import androidx.core.util.Consumer;
  */
 public interface CanDeviceIoAction extends DeviceIoAction
 {
-    void register(final int id, Consumer<byte[]> consumer);
+    void registerTimeOut(int id, long timeOutValue);
+
+    void register(int id, Consumer<byte[]> consumer);
 
     void unRegister(final int id);
 }

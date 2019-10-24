@@ -1,5 +1,7 @@
 package com.hellohuandian.apps.strategylibrary.strategies.pushRod;
 
+import android.os.SystemClock;
+
 import com.hellohuandian.apps.controllerlibrary.DeviceIoAction;
 import com.hellohuandian.apps.strategylibrary.dispatchers.canExtension.CanDeviceIoAction;
 import com.hellohuandian.apps.strategylibrary.strategies._base.ProtocolStrategy;
@@ -94,7 +96,7 @@ public class PushRodStrategy extends ProtocolStrategy
 
         // TODO: 2019-09-23 生成唯一ID，格式： PUSH_ROD[0] << 16 | PUSH_ROD[8] << 8 | PUSH_ROD[11]
         final int id = (address & 0xFF) << 16 | PUSH_ROD[11];
-        deviceIoAction.register(id, new NodeConsumer()
+        NodeConsumer nodeConsumer = new NodeConsumer()
         {
             @Override
             public void onAccept(byte[] bytes)
@@ -116,7 +118,9 @@ public class PushRodStrategy extends ProtocolStrategy
                 }
                 deviceIoAction.unRegister(id);
             }
-        });
+        };
+        // TODO: 2019-10-24 推杆执行10S后按照超时处理
+        deviceIoAction.registerTimeOut(id, 10 * 1000 + SystemClock.elapsedRealtime());
+        deviceIoAction.register(id, nodeConsumer);
     }
-
 }
