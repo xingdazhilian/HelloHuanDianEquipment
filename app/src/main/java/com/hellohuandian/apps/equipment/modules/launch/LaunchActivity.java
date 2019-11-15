@@ -17,32 +17,50 @@ import androidx.annotation.Nullable;
  */
 public class LaunchActivity extends AppBaseActivity
 {
+    private int launchFlag;
+
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState)
     {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_launch);
+        launchFlag = getIntent().getIntExtra("launchFlag", 1);
+        System.out.println("启动页launchFlag:" + launchFlag);
     }
 
     @Override
-    protected void onDestroy()
+    protected void onSaveInstanceState(Bundle outState)
     {
-        super.onDestroy();
+        super.onSaveInstanceState(outState);
+        if (launchFlag == 0)
+        {
+            launchFlag += 1;
+            outState.putInt("launchFlag", launchFlag);
+        }
+    }
+
+    @Override
+    protected void onRestoreInstanceState(Bundle savedInstanceState)
+    {
+        super.onRestoreInstanceState(savedInstanceState);
+        launchFlag = savedInstanceState.getInt("launchFlag");
     }
 
     @Override
     protected void onResume()
     {
         super.onResume();
-
-        new Handler().postDelayed(new Runnable()
+        if (launchFlag == 1)
         {
-            @Override
-            public void run()
+            new Handler().postDelayed(new Runnable()
             {
-                finish();
-                LaunchActivity.this.startActivity(new Intent(LaunchActivity.this, MainActivity.class));
-            }
-        }, 3000);
+                @Override
+                public void run()
+                {
+                    finish();
+                    LaunchActivity.this.startActivity(new Intent(LaunchActivity.this, MainActivity.class));
+                }
+            }, 3000);
+        }
     }
 }

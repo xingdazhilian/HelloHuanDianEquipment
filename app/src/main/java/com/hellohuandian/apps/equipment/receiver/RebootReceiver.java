@@ -4,7 +4,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 
-import com.jakewharton.processphoenix.ProcessPhoenix;
+import com.hellohuandian.apps.equipment.modules.launch.LaunchActivity;
 
 /**
  * Author:      Lee Yeung
@@ -18,8 +18,9 @@ public class RebootReceiver extends BroadcastReceiver
     {
         if (intent.getAction().equals(Intent.ACTION_BOOT_COMPLETED))
         {
-            // TODO: 2019-10-15 重新启动整个app(Android rom存在bug，主线程和子线程运行状态的bug)
-            ProcessPhoenix.triggerRebirth(context);
+            context.startActivity(new Intent(context, LaunchActivity.class)
+                    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK).putExtra("launchFlag", 0)
+            );
         }
     }
 }
