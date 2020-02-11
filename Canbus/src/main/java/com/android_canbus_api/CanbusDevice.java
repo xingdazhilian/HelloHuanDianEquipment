@@ -34,6 +34,8 @@ public final class CanbusDevice extends Canbus
     private void init()
     {
         //can初始化
+        // TODO: 2019-12-13 防止缓冲队列空间不足
+        A_RootCmd.execRootCmd("echo 4096 > /sys/class/net/can0/tx_queue_len");
         A_RootCmd.execRootCmd("ip link set can0 down");
         A_RootCmd.execRootCmd("ip link set can0 type can loopback off triple-sampling on");
         A_RootCmd.execRootCmd("ip link set can0 type can bitrate 125000 loopback off triple-sampling on");

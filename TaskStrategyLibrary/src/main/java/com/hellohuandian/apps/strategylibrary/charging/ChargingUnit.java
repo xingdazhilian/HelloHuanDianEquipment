@@ -1,27 +1,24 @@
 package com.hellohuandian.apps.strategylibrary.charging;
 
-import com.hellohuandian.apps.strategylibrary.charging.strategies.ChargingStrategy;
-import com.hellohuandian.apps.strategylibrary.strategies._data.BatteryData;
+import com.hellohuandian.apps.strategylibrary.config.MachineVersion;
+import com.hellohuandian.apps.strategylibrary.strategies.battery.BatteryInfo;
 
 /**
  * Author:      Lee Yeung
  * Create Date: 2019-10-12
- * Description: 充电
+ * Description: 充电单元
  */
 public class ChargingUnit
 {
-    private ChargingStrategy chargingStrategy;
+    private ChargingTable chargingTable = new ChargingTable();
 
-    public void setChargingStrategy(ChargingStrategy chargingStrategy)
+    public void init(@MachineVersion int version)
     {
-        this.chargingStrategy = chargingStrategy;
+        chargingTable.init(version);
     }
 
-    public void charging(BatteryData batteryData)
+    public void charging(BatteryInfo batteryData)
     {
-        if (chargingStrategy != null)
-        {
-            chargingStrategy.charging(batteryData);
-        }
+        chargingTable.recordBatteryInfo(batteryData);
     }
 }

@@ -5,8 +5,6 @@ import android.text.TextUtils;
 import com.hellohuandian.apps.controllerlibrary.DeviceIoAction;
 import com.hellohuandian.apps.strategylibrary.dispatchers.canExtension.CanDeviceIoAction;
 import com.hellohuandian.apps.strategylibrary.strategies._base.ProtocolStrategy;
-import com.hellohuandian.apps.utillibrary.StringFormatHelper;
-import com.orhanobut.logger.Logger;
 
 import java.io.IOException;
 
@@ -48,7 +46,7 @@ public class CheckCodeStrategy extends ProtocolStrategy
         if (!TextUtils.isEmpty(checkCode) && checkCode.trim().length() == 8)
         {
             String upperCaseCheckCode = checkCode.trim().toUpperCase();
-            System.out.println("校验码：" + upperCaseCheckCode);
+            //            System.out.println("校验码：" + upperCaseCheckCode);
 
             // TODO: 2019-11-29 定义校验码原始数据
             byte[] CHECK_CODE_BYTES = new byte[]{address, 0x05, 0x00, 0x0D, 0x00, 0x01
@@ -62,14 +60,14 @@ public class CheckCodeStrategy extends ProtocolStrategy
             short crc = crc16(CHECK_CODE_BYTES, 0, CHECK_CODE_BYTES.length - 2);
             CHECK_CODE_BYTES[CHECK_CODE_BYTES.length - 2] = (byte) (crc & 0xFF);
             CHECK_CODE_BYTES[CHECK_CODE_BYTES.length - 1] = (byte) (crc >> 8 & 0xFF);
-            System.out.println("校验码元数据：" + StringFormatHelper.getInstance().toHexString(CHECK_CODE_BYTES));
+            //            System.out.println("校验码元数据：" + StringFormatHelper.getInstance().toHexString(CHECK_CODE_BYTES));
             // TODO: 2019-11-29 can通讯指令
             int index = 6;
             final byte[] CHECK_CODE = {address, 0x00, 0x00, 0x00, 0x08, 0x00, 0x00, 0x00,
                     0x10, address, 0x05, 0x00, 0x0D, 0x00, 0x01, CHECK_CODE_BYTES[index++]};
 
             // TODO: 2019-11-28 1：第1帧数据
-            System.out.println("校验码第1帧：" + StringFormatHelper.getInstance().toHexString(CHECK_CODE));
+            //            System.out.println("校验码第1帧：" + StringFormatHelper.getInstance().toHexString(CHECK_CODE));
             try
             {
                 deviceIoAction.write(CHECK_CODE);
@@ -85,7 +83,7 @@ public class CheckCodeStrategy extends ProtocolStrategy
             {
                 CHECK_CODE[i] = CHECK_CODE_BYTES[index++];
             }
-            System.out.println("校验码第2帧：" + StringFormatHelper.getInstance().toHexString(CHECK_CODE));
+            //            System.out.println("校验码第2帧：" + StringFormatHelper.getInstance().toHexString(CHECK_CODE));
             try
             {
                 deviceIoAction.write(CHECK_CODE);
@@ -103,7 +101,7 @@ public class CheckCodeStrategy extends ProtocolStrategy
             {
                 CHECK_CODE[i] = 0x00;
             }
-            System.out.println("校验码第3帧：" + StringFormatHelper.getInstance().toHexString(CHECK_CODE));
+            //            System.out.println("校验码第3帧：" + StringFormatHelper.getInstance().toHexString(CHECK_CODE));
             try
             {
                 deviceIoAction.write(CHECK_CODE);
@@ -112,8 +110,6 @@ public class CheckCodeStrategy extends ProtocolStrategy
             {
                 e.printStackTrace();
             }
-
-            //            Logger.i("写入" + checkCode);
         }
     }
 }

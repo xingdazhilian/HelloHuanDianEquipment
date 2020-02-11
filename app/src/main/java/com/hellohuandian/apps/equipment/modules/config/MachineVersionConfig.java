@@ -11,6 +11,7 @@ public class MachineVersionConfig
 {
     public static @MachineVersion int getMachineVersion()
     {
-        return MachineVersion.SC_5;
+//        return MachineVersion.SC_5;
+        return MachineVersion.SC_6;
     }
 }

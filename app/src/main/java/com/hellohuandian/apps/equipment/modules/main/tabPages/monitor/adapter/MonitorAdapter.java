@@ -156,7 +156,8 @@ public class MonitorAdapter extends BaseRecycleAdapter<BatteryData, BaseRecycleA
                         + modelBatteryInfo.str_realTimeCurrent + "\n"
                         + modelBatteryInfo.str_batteryTemperature + "\n"
                         + "sv" + modelBatteryInfo.softwareVersion + ",hv" + modelBatteryInfo.hardwareVersion + "\n"
-                        + "BMS-" + modelBatteryInfo._BMS_manufacturer);
+                        + "BMS-" + modelBatteryInfo._BMS_manufacturer + "\n"
+                        + modelBatteryInfo.str_checkCode);
                 if (!TextUtils.isEmpty(modelBatteryInfo.str_doorBottomLockStatus))
                 {
                     if (modelBatteryInfo.doorBottomLockStatus == 1)

@@ -143,7 +143,7 @@ public class BatteryDataStrategy extends ProtocolStrategy
      */
     private void parse(byte[] bytes)
     {
-        System.out.println(address + "号读取：" + StringFormatHelper.getInstance().toHexString(bytes));
+//        System.out.println(address + "号读取：" + StringFormatHelper.getInstance().toHexString(bytes));
         batteryInfo.reset();
 
         if (bytes != null && bytes.length > 0)
@@ -165,6 +165,7 @@ public class BatteryDataStrategy extends ProtocolStrategy
             parseVersion(bytes);
             parseControlPanelTemperature(bytes);
             parseControlPanelVersion(bytes);
+            parserBatteryCheckCode(bytes);
         }
 
         if (onBatteryDataUpdate != null)
@@ -476,6 +477,21 @@ public class BatteryDataStrategy extends ProtocolStrategy
         {
             int value = bytes[55];
             batteryInfo.setControlPanelVersion(value);
+        }
+    }
+
+    /**
+     * 解析电池校验码
+     *
+     * @param bytes
+     */
+    private void parserBatteryCheckCode(byte[] bytes)
+    {
+        if (bytes.length > 118)
+        {
+            stringBuilder.setLength(0);
+            for (int i = 109, len = 109 + 8; i < len; stringBuilder.append((char) (bytes[i] & 0xFF)), i++) ;
+            batteryInfo.str_checkCode = stringBuilder.toString();
         }
     }
 

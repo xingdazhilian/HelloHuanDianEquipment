@@ -34,6 +34,7 @@ public final class ScManager
 
     public void stop()
     {
+        System.out.println("ScManager停止" + Thread.currentThread().getName());
         DispatcherManager.getInstance().stop();
     }
 }

@@ -102,7 +102,7 @@ final class SerialPortDispatcher extends TaskDispatcher<TaskStrategy>
         {
             isLoop = false;
             clear();
-            System.out.println("串口分发线程停止isLoop：" + isLoop);
+            System.out.println("串口分发线程停止：" + isLoop);
             SerialPortDeviceController.getInstance().stop();
 
             if (serialPortDispatcherThread != null)
@@ -203,15 +203,9 @@ final class SerialPortDispatcher extends TaskDispatcher<TaskStrategy>
         pushRodStrategy.setOnPushAction(new OnPushAction()
         {
             @Override
-            public void onPushSuccessed(byte address)
+            public void onPushed(boolean isSuccessed)
             {
-                System.out.println("推杆成功");
-            }
 
-            @Override
-            public void onPushFailed(byte address)
-            {
-                System.out.println("推杆失败");
             }
         });
         dispatch(pushRodStrategy);

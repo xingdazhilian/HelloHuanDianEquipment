@@ -35,7 +35,7 @@ public final class StringFormatHelper
      *
      * @return
      */
-    public String toHexString(byte[] data)
+    public synchronized String toHexString(byte[] data)
     {
         return toHexString(data, true);
     }

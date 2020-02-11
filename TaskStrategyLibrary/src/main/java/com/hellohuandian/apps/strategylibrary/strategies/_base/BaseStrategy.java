@@ -1,5 +1,9 @@
 package com.hellohuandian.apps.strategylibrary.strategies._base;
 
+import android.text.TextUtils;
+
+import java.math.BigInteger;
+
 /**
  * Author:      Lee Yeung
  * Create Date: 2019-09-16
@@ -57,9 +61,34 @@ public abstract class BaseStrategy extends TaskStrategy
         for (byte item : data)
         {
             crcVal ^= item << 24;
-            for (k = 0; k < 8; k++, crcVal = ((crcVal & 0x80000000) != 0) ? ((crcVal << 1) ^ 0x04C11DB7) : (crcVal << 1)) ;
+            for (k = 0; k < 8; k++, crcVal = ((crcVal & 0x80000000) != 0) ? ((crcVal << 1) ^ 0x04C11DB7) : (crcVal << 1))
+                ;
         }
         return crcVal;
+    }
+
+    /**
+     * 十六进制字符串转换为十进制数
+     *
+     * @param hexString
+     *
+     * @return
+     */
+    protected final int hexToInt(String hexString) throws NumberFormatException
+    {
+        if (!TextUtils.isEmpty(hexString))
+        {
+            hexString = hexString.trim();
+            if (hexString.startsWith("0x") || hexString.startsWith("0X"))
+            {
+                hexString = hexString.substring(2);
+            }
+            if (!TextUtils.isEmpty(hexString))
+            {
+                return new BigInteger(hexString, 16).intValue();
+            }
+        }
+        return 0;
     }
 
     /**
@@ -84,3 +113,7 @@ public abstract class BaseStrategy extends TaskStrategy
         return (short) (crc & 0xFFFF);
     }
 }
+
+
+
+

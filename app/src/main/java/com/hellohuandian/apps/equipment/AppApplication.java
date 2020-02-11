@@ -2,8 +2,6 @@ package com.hellohuandian.apps.equipment;
 
 import android.app.Application;
 
-import com.jakewharton.processphoenix.ProcessPhoenix;
-
 import io.reactivex.functions.Consumer;
 import io.reactivex.plugins.RxJavaPlugins;
 
@@ -20,10 +18,11 @@ public class AppApplication extends Application
         super.onCreate();
         //        setRxJavaErrorHandler();
 
-        if (ProcessPhoenix.isPhoenixProcess(getApplicationContext()))
-        {
-            return;
-        }
+//        if (ProcessPhoenix.isPhoenixProcess(getApplicationContext()))
+//        {
+//            return;
+//        }
+        System.out.println("入口AppApplication");
     }
 
     private void setRxJavaErrorHandler()

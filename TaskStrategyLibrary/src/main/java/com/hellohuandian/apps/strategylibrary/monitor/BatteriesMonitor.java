@@ -1,9 +1,10 @@
 package com.hellohuandian.apps.strategylibrary.monitor;
 
 import com.hellohuandian.apps.strategylibrary.charging.ChargingUnit;
+import com.hellohuandian.apps.strategylibrary.config.MachineVersion;
 import com.hellohuandian.apps.strategylibrary.dispatchers.DispatcherManager;
-import com.hellohuandian.apps.strategylibrary.heating.HeatingUnit;
 import com.hellohuandian.apps.strategylibrary.strategies._data.BatteryData;
+import com.hellohuandian.apps.strategylibrary.strategies.battery.BatteryInfo;
 import com.hellohuandian.apps.strategylibrary.strategies.battery.OnBatteryDataUpdate;
 
 import java.util.HashSet;
@@ -18,6 +19,7 @@ import androidx.core.util.Consumer;
  */
 public final class BatteriesMonitor implements OnBatteryDataUpdate
 {
+    private final ChargingUnit chargingUnit = new ChargingUnit();
     private final HashSet<OnBatteryDataUpdate> onBatteryDataUpdateHashSet = new HashSet<>();
 
     private static final BatteriesMonitor BATTERIES_MONITOR = new BatteriesMonitor();
@@ -29,11 +31,9 @@ public final class BatteriesMonitor implements OnBatteryDataUpdate
 
     private final BatteryDataChangeFilter batteryDataChangeFilter = new BatteryDataChangeFilter();
 
-    private final HeatingUnit heatingUnit = new HeatingUnit();
-    private final ChargingUnit chargingUnit = new ChargingUnit();
-
     private BatteriesMonitor()
     {
+        // TODO: 2019-10-25 电池数据变化
         batteryDataChangeFilter.setDataChangeConsumer(new Consumer<BatteryData>()
         {
             @Override
@@ -42,22 +42,11 @@ public final class BatteriesMonitor implements OnBatteryDataUpdate
                 onUpdateDispatch(batteryData);
             }
         });
-        batteryDataChangeFilter.setBatteryLockedConsumer(new Consumer<BatteryData>()
-        {
-            @Override
-            public void accept(BatteryData batteryData)
-            {
-                chargingUnit.charging(batteryData);
-            }
-        });
-        batteryDataChangeFilter.setBatteryUpgradeConsumer(new Consumer<BatteryData>()
-        {
-            @Override
-            public void accept(BatteryData batteryData)
-            {
-                onUpdateDispatch(batteryData);
-            }
-        });
+    }
+
+    public void init(@MachineVersion int version)
+    {
+        chargingUnit.init(version);
     }
 
     public void addOnBatteryDataUpdate(OnBatteryDataUpdate onBatteryDataUpdate)
@@ -98,5 +87,10 @@ public final class BatteriesMonitor implements OnBatteryDataUpdate
     public void onUpdate(BatteryData batteryData)
     {
         batteryDataChangeFilter.accept(batteryData);
+        // TODO: 2019-10-31 交给充电单元
+        if (batteryData instanceof BatteryInfo)
+        {
+            chargingUnit.charging((BatteryInfo) batteryData);
+        }
     }
 }

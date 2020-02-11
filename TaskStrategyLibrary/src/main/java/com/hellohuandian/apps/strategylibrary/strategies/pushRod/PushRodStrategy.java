@@ -46,7 +46,7 @@ public class PushRodStrategy extends ProtocolStrategy
                 // TODO: 2019-09-18 收缩推杆正常完成
                 if (onPushAction != null)
                 {
-                    onPushAction.onPushSuccessed(address);
+                    onPushAction.onPushed(true);
                 }
             } else
             {
@@ -58,14 +58,14 @@ public class PushRodStrategy extends ProtocolStrategy
                     // TODO: 2019-09-18 推杆成功
                     if (onPushAction != null)
                     {
-                        onPushAction.onPushSuccessed(address);
+                        onPushAction.onPushed(true);
                     }
                 } else
                 {
                     // TODO: 2019-09-18 推杆失败，可能存在故障
                     if (onPushAction != null)
                     {
-                        onPushAction.onPushFailed(address);
+                        onPushAction.onPushed(false);
                     }
                 }
             }
@@ -110,10 +110,10 @@ public class PushRodStrategy extends ProtocolStrategy
                 {
                     if (resultId == id)
                     {
-                        onPushAction.onPushSuccessed(address);
+                        onPushAction.onPushed(true);
                     } else
                     {
-                        onPushAction.onPushFailed(address);
+                        onPushAction.onPushed(false);
                     }
                 }
                 deviceIoAction.unRegister(id);

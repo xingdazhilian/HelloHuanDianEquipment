@@ -25,6 +25,12 @@ public class JieMinKeBatteryUpgradeStrategy extends BatteryUpgradeStrategy
     //需要进入485转发，下标0是对应的控制板地址，需要设置电池对应的控制板地址
     private byte[] _485 = new byte[]{address, 0x05, 0x00, 0x0B, 0x00, 0x01, 0x00, 0x00};
 
+    //电池ID码
+    static final byte[] BATTERY_ID_CODE = {0x3A, 0x16, (byte) 0x7E, 0x01, 0x00, 0x00, 0x00, 0x0D, 0x0A};
+
+    //BMS版本信息
+    static final byte[] VERSION = {0x3A, 0x16, 0x7F, 0x01, 0x00, 0x00, 0x00, 0x0D, 0x0A};
+
     //电池信息指令
     private byte[] BMS_cmd = new byte[]{0x3A, 0x16, (byte) 0xF0, 0x02, (byte) 0xF2, 0x00, 0x00, 0x00, 0x0D, 0x0A};
 
@@ -90,6 +96,7 @@ public class JieMinKeBatteryUpgradeStrategy extends BatteryUpgradeStrategy
 
         short snTemp = 0;
         int totalFrameSizeTemp = 0;
+        int sum;
 
         short crc = crc16(_485, 0, 6);
         _485[_485.length - 2] = (byte) (crc & 0xFF);
@@ -97,7 +104,6 @@ public class JieMinKeBatteryUpgradeStrategy extends BatteryUpgradeStrategy
 
         try
         {
-
             byte[] result = null;
             sleep(5000);
             // TODO: 2019-09-05 激活485转发
@@ -163,12 +169,89 @@ public class JieMinKeBatteryUpgradeStrategy extends BatteryUpgradeStrategy
                 return;
             }
 
-            int sum;
+            sum = calculateSum(BATTERY_ID_CODE, 1, 4);
+            BATTERY_ID_CODE[5] = (byte) (sum & 0xFF);
+            BATTERY_ID_CODE[6] = (byte) (sum >> 8 & 0xFF);
+            System.out.println("请求ID码：" + StringFormatHelper.getInstance().toHexString(BATTERY_ID_CODE));
+            deviceIoAction.write(BATTERY_ID_CODE);
+            sleep(200);
+            result = deviceIoAction.read();
+            if (result != null && result.length >= 20)
+            {
+                StringBuilder stringBuilder = new StringBuilder();
+                for (int i = 4, len = result.length - 4; i < len; stringBuilder.append((char) (result[i] & 0xFF)), i++)
+                    ;
+                final String resultIdCode = stringBuilder.toString();
+                if (!(!TextUtils.isEmpty(resultIdCode) && resultIdCode.startsWith(idCode)))
+                {
+                    batteryUpgradeInfo.statusFlag = BatteryUpgradeStrategyStatus.FAILED;
+                    batteryUpgradeInfo.statusInfo = "电池类型和升级包不匹配!";
+                    onBatteryDataUpdate.onUpdate(batteryUpgradeInfo);
+                    sleep(10 * 1000);
+                    return;
+                }
+            } else
+            {
+                batteryUpgradeInfo.statusFlag = BatteryUpgradeStrategyStatus.FAILED;
+                batteryUpgradeInfo.statusInfo = "电池ID码错误!" + StringFormatHelper.getInstance().toHexString(result);
+                onBatteryDataUpdate.onUpdate(batteryUpgradeInfo);
+                sleep(10 * 1000);
+                return;
+            }
+
+            if (TextUtils.isEmpty(bmsHardwareVersion))
+            {
+                batteryUpgradeInfo.statusFlag = BatteryUpgradeStrategyStatus.FAILED;
+                batteryUpgradeInfo.statusInfo = "BMS硬件版本为空!";
+                onBatteryDataUpdate.onUpdate(batteryUpgradeInfo);
+                sleep(10 * 1000);
+                return;
+            } else
+            {
+                sum = calculateSum(VERSION, 1, 4);
+                VERSION[5] = (byte) (sum & 0xFF);
+                VERSION[6] = (byte) (sum >> 8 & 0xFF);
+                System.out.println("请求版本：" + StringFormatHelper.getInstance().toHexString(VERSION));
+                deviceIoAction.write(VERSION);
+                sleep(200);
+                result = deviceIoAction.read();
+                if (result.length >= 6)
+                {
+                    final String hv = Byte.toString((byte) (result[6] & 0xFF));
+                    System.out.println("BMS硬件版本：" + hv);
+                    if (!hv.equals(bmsHardwareVersion))
+                    {
+                        batteryUpgradeInfo.statusFlag = BatteryUpgradeStrategyStatus.FAILED;
+                        batteryUpgradeInfo.statusInfo = "BMS硬件版本不匹配!" + StringFormatHelper.getInstance().toHexString(result);
+                        onBatteryDataUpdate.onUpdate(batteryUpgradeInfo);
+                        sleep(10 * 1000);
+                        return;
+                    }
+                } else
+                {
+                    batteryUpgradeInfo.statusFlag = BatteryUpgradeStrategyStatus.FAILED;
+                    batteryUpgradeInfo.statusInfo = "BMS硬件版本错误!" + StringFormatHelper.getInstance().toHexString(result);
+                    onBatteryDataUpdate.onUpdate(batteryUpgradeInfo);
+                    sleep(10 * 1000);
+                    return;
+                }
+            }
+
+            // TODO: 2019-09-08 比较CRC校验码
+            if (TextUtils.isEmpty(crcValue))
+            {
+                batteryUpgradeInfo.statusFlag = BatteryUpgradeStrategyStatus.FAILED;
+                batteryUpgradeInfo.statusInfo = "文件包CRC为空!" + StringFormatHelper.getInstance().toHexString(result);
+                onBatteryDataUpdate.onUpdate(batteryUpgradeInfo);
+                sleep(10 * 1000);
+                return;
+            }
 
             // TODO: 2019-09-05 进入BootLoader模式
             sum = calculateSum(bootLoaderMode, 1, 16);
             bootLoaderMode[17] = (byte) (sum & 0xFF);
             bootLoaderMode[18] = (byte) (sum >> 8 & 0xFF);
+            System.out.println("请求BootLoader模式：" + StringFormatHelper.getInstance().toHexString(bootLoaderMode));
             final long startTime = System.currentTimeMillis();
             while (System.currentTimeMillis() - startTime < 30 * 1000)//超过30S失败
             {
@@ -195,55 +278,7 @@ public class JieMinKeBatteryUpgradeStrategy extends BatteryUpgradeStrategy
                 return;
             }
 
-            // TODO: 2019-09-17 判断电池是否符合捷敏科电池升级要求
-            sum = calculateSum(BMS_cmd, 1, 5);
-            BMS_cmd[6] = (byte) (sum & 0xFF);
-            BMS_cmd[7] = (byte) (sum >> 8 & 0xFF);
-            deviceIoAction.write(BMS_cmd);
-            sleep(200);
-            result = deviceIoAction.read();
-            if (result != null && result.length > 30)
-            {
-                if ((result[27] & 0xFF) != 0)
-                {
-                    batteryUpgradeInfo.statusFlag = BatteryUpgradeStrategyStatus.FAILED;
-                    batteryUpgradeInfo.statusInfo = "BMS厂商不匹配:" + StringFormatHelper.getInstance().toHexString(result);
-                    onBatteryDataUpdate.onUpdate(batteryUpgradeInfo);
-                    sleep(10 * 1000);
-                    return;
-                }
-                if ((result[28] & 0xFF) != 0)
-                {
-                    batteryUpgradeInfo.statusFlag = BatteryUpgradeStrategyStatus.FAILED;
-                    batteryUpgradeInfo.statusInfo = "电池厂商不匹配:" + StringFormatHelper.getInstance().toHexString(result);
-                    onBatteryDataUpdate.onUpdate(batteryUpgradeInfo);
-                    sleep(10 * 1000);
-                    return;
-                }
-                if ((result[29] & 0xFF) != 0)
-                {
-                    batteryUpgradeInfo.statusFlag = BatteryUpgradeStrategyStatus.FAILED;
-                    batteryUpgradeInfo.statusInfo = "电芯类型不匹配:" + StringFormatHelper.getInstance().toHexString(result);
-                    onBatteryDataUpdate.onUpdate(batteryUpgradeInfo);
-                    sleep(10 * 1000);
-                    return;
-                }
-                if ((result[30] & 0xFF) != 0)
-                {
-                    batteryUpgradeInfo.statusFlag = BatteryUpgradeStrategyStatus.FAILED;
-                    batteryUpgradeInfo.statusInfo = "电池型号不匹配:" + StringFormatHelper.getInstance().toHexString(result);
-                    onBatteryDataUpdate.onUpdate(batteryUpgradeInfo);
-                    sleep(10 * 1000);
-                    return;
-                }
-            } else
-            {
-                batteryUpgradeInfo.statusFlag = BatteryUpgradeStrategyStatus.FAILED;
-                batteryUpgradeInfo.statusInfo = "电池信息无效:" + StringFormatHelper.getInstance().toHexString(result);
-                onBatteryDataUpdate.onUpdate(batteryUpgradeInfo);
-                sleep(10 * 1000);
-                return;
-            }
+            out(result);
 
             // TODO: 2019-09-05 初始化固件数据
             int len = 0;
@@ -281,8 +316,18 @@ public class JieMinKeBatteryUpgradeStrategy extends BatteryUpgradeStrategy
 
                 firmwareInfo[10] = (byte) (totalFrameSize & 0xFF);
                 firmwareInfo[11] = (byte) (totalFrameSize >> 8 & 0xFF);
-                // TODO: 2019-09-02 CRC32 校验码,低字节在前，高字节在后。
+
                 final int binDataCrc = crc32(binData);
+                if (hexToInt(crcValue) != binDataCrc)
+                {
+                    batteryUpgradeInfo.statusFlag = BatteryUpgradeStrategyStatus.FAILED;
+                    batteryUpgradeInfo.statusInfo = "CRC不匹配!" + StringFormatHelper.getInstance().toHexString(result);
+                    onBatteryDataUpdate.onUpdate(batteryUpgradeInfo);
+                    sleep(10 * 1000);
+                    return;
+                }
+
+                // TODO: 2019-09-02 CRC32 校验码,低字节在前，高字节在后。
                 firmwareInfo[12] = (byte) (binDataCrc & 0xFF);
                 firmwareInfo[13] = (byte) (binDataCrc >> 8 & 0xFF);
                 firmwareInfo[14] = (byte) (binDataCrc >> 16 & 0xFF);
@@ -311,6 +356,7 @@ public class JieMinKeBatteryUpgradeStrategy extends BatteryUpgradeStrategy
                     sleep(10 * 1000);
                     return;
                 }
+                out(result);
 
                 // TODO: 2019-09-02 开始循环写入数据帧
                 int loopCount = 1;
@@ -331,6 +377,7 @@ public class JieMinKeBatteryUpgradeStrategy extends BatteryUpgradeStrategy
                     offset++;
                     sleep(500);
                     result = deviceIoAction.read();
+                    out(result);
                     batteryUpgradeInfo.currentPregress = sn;
                     if (result != null && result.length > 6 && result[4] == (byte) 0xF7 && result[5] == 0x00)
                     {
@@ -373,6 +420,7 @@ public class JieMinKeBatteryUpgradeStrategy extends BatteryUpgradeStrategy
                     deviceIoAction.write(lastData);
                     sleep(5000);
                     result = deviceIoAction.read();
+                    out(result);
                     System.out.println("最后一针读：" + StringFormatHelper.getInstance().toHexString(result));
                     if (result != null && result.length > 6 && result[4] == (byte) 0xF7 && result[5] == 0x00)
                     {
@@ -397,6 +445,7 @@ public class JieMinKeBatteryUpgradeStrategy extends BatteryUpgradeStrategy
                 deviceIoAction.write(activationBMS);
                 sleep(200);
                 result = deviceIoAction.read();
+                out(result);
 
                 batteryUpgradeInfo.currentPregress = totalFrameSize;
                 batteryUpgradeInfo.statusFlag = BatteryUpgradeStrategyStatus.ACTION_BMS;
@@ -421,5 +470,13 @@ public class JieMinKeBatteryUpgradeStrategy extends BatteryUpgradeStrategy
 
         sleep(10 * 1000);
         onBatteryDataUpdate.onUpdate(batteryUpgradeInfo);
+    }
+
+    private void out(byte[] bytes)
+    {
+        if (bytes != null)
+        {
+            System.out.println(StringFormatHelper.getInstance().toHexString(bytes));
+        }
     }
 }

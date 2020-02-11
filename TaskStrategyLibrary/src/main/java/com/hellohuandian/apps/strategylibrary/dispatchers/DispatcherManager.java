@@ -6,6 +6,8 @@ import com.hellohuandian.apps.strategylibrary.strategies._data.BatteryData;
 import com.hellohuandian.apps.strategylibrary.strategies.battery.BatteryDataStrategy;
 import com.hellohuandian.apps.strategylibrary.strategies.battery.BatteryInfoTable;
 import com.hellohuandian.apps.strategylibrary.strategies.battery.OnBatteryDataUpdate;
+import com.hellohuandian.apps.strategylibrary.strategies.lifes.DC_LifeStrategy;
+import com.hellohuandian.apps.strategylibrary.strategies.lifes.Pdu_LifeStrategy;
 import com.hellohuandian.apps.strategylibrary.strategies.upgrade.battery.BatteryUpgradeStrategy;
 
 /**
@@ -18,6 +20,7 @@ public final class DispatcherManager
     private static final DispatcherManager DISPATCHER_MANAGER = new DispatcherManager();
 
     private TaskDispatcher taskDispatcher;
+    private TaskDispatcher batteryUpgradeDispatcher;
     private OnBatteryDataUpdate mOnBatteryDataUpdate;
 
     private OnBatteryDataUpdate onBatteryDataUpdate = new OnBatteryDataUpdate()
@@ -64,6 +67,16 @@ public final class DispatcherManager
                 size = 9;
                 // TODO: 2019-09-28 仓数地址1~9(0x05~0x0D)
                 taskDispatcher = CanDispatcher.getInstance();
+                batteryUpgradeDispatcher = SerialPortDispatcher.getInstance();
+                ((CanDispatcher) taskDispatcher).initLifeStrategy(new Pdu_LifeStrategy());
+                break;
+            case MachineVersion.SC_6:
+                startAddress = 0x01;
+                size = 9;
+                // TODO: 2019-09-28 仓数地址1~9(0x05~0x0D)
+                taskDispatcher = CanDispatcher.getInstance();
+                batteryUpgradeDispatcher = taskDispatcher;
+                ((CanDispatcher) taskDispatcher).initLifeStrategy(new DC_LifeStrategy());
                 break;
         }
 
@@ -113,26 +126,30 @@ public final class DispatcherManager
     {
         if (taskStrategy instanceof BatteryUpgradeStrategy)
         {
-            BatteryUpgradeStrategy batteryUpgradeStrategy = (BatteryUpgradeStrategy) taskStrategy;
-            final OnBatteryDataUpdate innerOnBatteryDataUpdate = batteryUpgradeStrategy.getOnBatteryDataUpdate();
-            batteryUpgradeStrategy.setOnBatteryDataUpdate(new OnBatteryDataUpdate()
+            if (batteryUpgradeDispatcher != null)
             {
-                @Override
-                public void onUpdate(BatteryData batteryData)
+                BatteryUpgradeStrategy batteryUpgradeStrategy = (BatteryUpgradeStrategy) taskStrategy;
+                final OnBatteryDataUpdate innerOnBatteryDataUpdate = batteryUpgradeStrategy.getOnBatteryDataUpdate();
+                batteryUpgradeStrategy.setOnBatteryDataUpdate(new OnBatteryDataUpdate()
                 {
-                    // TODO: 2019-10-23 升级信息先发送给监视器去执行过滤 
-                    if (onBatteryDataUpdate != null)
+                    @Override
+                    public void onUpdate(BatteryData batteryData)
                     {
-                        onBatteryDataUpdate.onUpdate(batteryData);
+                        // TODO: 2019-10-23 升级信息先发送给监视器去执行过滤
+                        if (onBatteryDataUpdate != null)
+                        {
+                            onBatteryDataUpdate.onUpdate(batteryData);
+                        }
+                        // TODO: 2019-10-23 执行真实的接口对象回调
+                        if (innerOnBatteryDataUpdate != null)
+                        {
+                            innerOnBatteryDataUpdate.onUpdate(batteryData);
+                        }
                     }
-                    // TODO: 2019-10-23 执行真实的接口对象回调
-                    if (innerOnBatteryDataUpdate != null)
-                    {
-                        innerOnBatteryDataUpdate.onUpdate(batteryData);
-                    }
-                }
-            });
-            SerialPortDispatcher.getInstance().dispatch(taskStrategy);
+                });
+
+                batteryUpgradeDispatcher.dispatch(taskStrategy);
+            }
         } else
         {
             taskDispatcher.dispatch(taskStrategy);

@@ -43,7 +43,7 @@ public class RelayCloseStrategy extends ProtocolStrategy
             {
                 if (onRelaySwitchAction != null)
                 {
-                    onRelaySwitchAction.onSwitchSuccessed(address);
+                    onRelaySwitchAction.onSwitchStatus(true);
                 }
                 deviceIoAction.unRegister(resultId);
             }

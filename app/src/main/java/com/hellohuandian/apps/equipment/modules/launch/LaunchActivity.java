@@ -7,6 +7,10 @@ import android.os.Handler;
 import com.hellohuandian.apps.equipment.R;
 import com.hellohuandian.apps.equipment._base.activities.AppBaseActivity;
 import com.hellohuandian.apps.equipment.modules.main.MainActivity;
+import com.orhanobut.logger.CsvFormatStrategy;
+import com.orhanobut.logger.DiskLogAdapter;
+import com.orhanobut.logger.FormatStrategy;
+import com.orhanobut.logger.Logger;
 
 import androidx.annotation.Nullable;
 
@@ -17,50 +21,42 @@ import androidx.annotation.Nullable;
  */
 public class LaunchActivity extends AppBaseActivity
 {
-    private int launchFlag;
+    private final Handler handler = new Handler();
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState)
     {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_launch);
-        launchFlag = getIntent().getIntExtra("launchFlag", 1);
-        System.out.println("启动页launchFlag:" + launchFlag);
-    }
-
-    @Override
-    protected void onSaveInstanceState(Bundle outState)
-    {
-        super.onSaveInstanceState(outState);
-        if (launchFlag == 0)
-        {
-            launchFlag += 1;
-            outState.putInt("launchFlag", launchFlag);
-        }
-    }
-
-    @Override
-    protected void onRestoreInstanceState(Bundle savedInstanceState)
-    {
-        super.onRestoreInstanceState(savedInstanceState);
-        launchFlag = savedInstanceState.getInt("launchFlag");
     }
 
     @Override
     protected void onResume()
     {
         super.onResume();
-        if (launchFlag == 1)
+        handler.postDelayed(new Runnable()
         {
-            new Handler().postDelayed(new Runnable()
+            @Override
+            public void run()
             {
-                @Override
-                public void run()
-                {
-                    finish();
-                    LaunchActivity.this.startActivity(new Intent(LaunchActivity.this, MainActivity.class));
-                }
-            }, 3000);
-        }
+                FormatStrategy formatStrategy = CsvFormatStrategy.newBuilder()
+                        .tag("校验码")
+                        .build();
+                Logger.addLogAdapter(new DiskLogAdapter(formatStrategy));
+
+
+                System.out.println("进入主页");
+                finish();
+                LaunchActivity.this.startActivity(new Intent(LaunchActivity.this, MainActivity.class));
+            }
+        }, 3000);
+    }
+
+
+    @Override
+    protected void onStop()
+    {
+        super.onStop();
+        handler.removeCallbacksAndMessages(null);
     }
 }

@@ -9,7 +9,7 @@ import com.hellohuandian.apps.strategylibrary.strategies._data.BatteryData;
 import com.hellohuandian.apps.strategylibrary.strategies.battery.BatteryDataStrategy;
 import com.hellohuandian.apps.strategylibrary.strategies.battery.BatteryInfoTable;
 import com.hellohuandian.apps.strategylibrary.strategies.battery.OnBatteryDataUpdate;
-import com.hellohuandian.apps.strategylibrary.strategies.pdu.LifeStrategy;
+import com.hellohuandian.apps.strategylibrary.strategies.lifes.LifeStrategy;
 import com.hellohuandian.apps.strategylibrary.strategies.pushRod.OnPushAction;
 import com.hellohuandian.apps.strategylibrary.strategies.pushRod.PushRodStrategy;
 import com.hellohuandian.apps.strategylibrary.strategies.relay.OnRelaySwitchAction;
@@ -27,7 +27,7 @@ final class CanDispatcher extends TaskDispatcher<TaskStrategy>
 {
     private volatile boolean isLoop;
     private static final CanDispatcher CAN_DISPATCHER = new CanDispatcher();
-    private final TaskStrategy pduLifeStrategy = new LifeStrategy((byte) 0x15);
+    private TaskStrategy lifeStrategy;
     private Thread canReadThread;
     private Thread canWriteThread;
 
@@ -38,6 +38,11 @@ final class CanDispatcher extends TaskDispatcher<TaskStrategy>
     public static CanDispatcher getInstance()
     {
         return CAN_DISPATCHER;
+    }
+
+    public void initLifeStrategy(LifeStrategy lifeStrategy)
+    {
+        this.lifeStrategy = lifeStrategy;
     }
 
     @Override
@@ -160,8 +165,12 @@ final class CanDispatcher extends TaskDispatcher<TaskStrategy>
                         // TODO: 2019-09-19 分发主动can指令
                         ts.execute(deviceIoAction);
                     }
-                    // TODO: 2019-09-19 分发充电机生命帧指令
-                    pduLifeStrategy.execute(deviceIoAction);
+
+                    if (lifeStrategy != null)
+                    {
+                        // TODO: 2019-09-19 分发充电机生命帧指令
+                        lifeStrategy.execute(deviceIoAction);
+                    }
                 }
             }
         });
@@ -189,15 +198,9 @@ final class CanDispatcher extends TaskDispatcher<TaskStrategy>
                 relayOpenStrategy.setOnRelaySwitchAction(new OnRelaySwitchAction()
                 {
                     @Override
-                    public void onSwitchSuccessed(byte address)
+                    public void onSwitchStatus(boolean isSuccessed)
                     {
-                        System.out.println("继电器通路");
-                    }
-
-                    @Override
-                    public void onSwitchFailed(byte address)
-                    {
-
+                        System.out.println("继电器通路" + isSuccessed);
                     }
                 });
                 relayOpenStrategy.call(new Consumer<NodeStrategy>()
@@ -251,30 +254,24 @@ final class CanDispatcher extends TaskDispatcher<TaskStrategy>
                 relayCloseStrategy.setOnRelaySwitchAction(new OnRelaySwitchAction()
                 {
                     @Override
-                    public void onSwitchSuccessed(byte address)
+                    public void onSwitchStatus(boolean isSuccessed)
                     {
-                        System.out.println("继电器短路成功：" + address);
-                    }
-
-                    @Override
-                    public void onSwitchFailed(byte address)
-                    {
-                        System.out.println("继电器短路失败：" + address);
+                        if (isSuccessed)
+                        {
+                            System.out.println("继电器短路成功：");
+                        } else
+                        {
+                            System.out.println("继电器短路失败：");
+                        }
                     }
                 });
                 PushRodStrategy pushRodStrategy = new PushRodStrategy((byte) 0x05);
                 pushRodStrategy.setOnPushAction(new OnPushAction()
                 {
                     @Override
-                    public void onPushSuccessed(byte address)
+                    public void onPushed(boolean isSuccessed)
                     {
-                        System.out.println("推杆执行完成：" + address);
-                    }
 
-                    @Override
-                    public void onPushFailed(byte address)
-                    {
-                        System.out.println("推杆执行失败：" + address);
                     }
                 });
                 relayCloseStrategy.addNext(pushRodStrategy)

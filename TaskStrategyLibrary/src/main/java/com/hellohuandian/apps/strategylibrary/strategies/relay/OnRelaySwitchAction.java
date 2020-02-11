@@ -7,7 +7,5 @@ package com.hellohuandian.apps.strategylibrary.strategies.relay;
  */
 public interface OnRelaySwitchAction
 {
-    void onSwitchSuccessed(byte address);
-
-    void onSwitchFailed(byte address);
+    void onSwitchStatus(boolean isSuccessed);
 }

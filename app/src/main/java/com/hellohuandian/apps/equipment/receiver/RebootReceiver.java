@@ -19,8 +19,7 @@ public class RebootReceiver extends BroadcastReceiver
         if (intent.getAction().equals(Intent.ACTION_BOOT_COMPLETED))
         {
             context.startActivity(new Intent(context, LaunchActivity.class)
-                    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK).putExtra("launchFlag", 0)
-            );
+                    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
         }
     }
 }

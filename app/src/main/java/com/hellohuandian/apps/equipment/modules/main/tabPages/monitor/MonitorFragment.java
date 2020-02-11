@@ -1,6 +1,11 @@
 package com.hellohuandian.apps.equipment.modules.main.tabPages.monitor;
 
+import android.annotation.SuppressLint;
+import android.content.Context;
 import android.os.Bundle;
+import android.telephony.TelephonyManager;
+import android.telephony.gsm.GsmCellLocation;
+import android.text.TextUtils;
 import android.view.View;
 
 import com.hellohuandian.apps.equipment.R;
@@ -13,15 +18,26 @@ import com.hellohuandian.apps.equipment.widgets.dialog.AppDialog;
 import com.hellohuandian.apps.strategylibrary.config.MachineVersion;
 import com.hellohuandian.apps.strategylibrary.dispatchers.DispatcherManager;
 import com.hellohuandian.apps.strategylibrary.strategies._base.NodeStrategy;
-import com.hellohuandian.apps.strategylibrary.strategies._data.BatteryData;
 import com.hellohuandian.apps.strategylibrary.strategies.activation.Action485;
-import com.hellohuandian.apps.strategylibrary.strategies.battery.OnBatteryDataUpdate;
+import com.hellohuandian.apps.strategylibrary.strategies.battery.BatteryInfo;
+import com.hellohuandian.apps.strategylibrary.strategies.charging.ChargingStrategy;
+import com.hellohuandian.apps.strategylibrary.strategies.charging.OnChargingAction;
+import com.hellohuandian.apps.strategylibrary.strategies.checkCode.CheckCodeStrategy;
 import com.hellohuandian.apps.strategylibrary.strategies.pushRod.OnPushAction;
 import com.hellohuandian.apps.strategylibrary.strategies.pushRod.PushRodStrategy;
 import com.hellohuandian.apps.strategylibrary.strategies.relay.RelayCloseStrategy;
+import com.hellohuandian.apps.strategylibrary.strategies.relay.RelayOpenStrategy;
 import com.hellohuandian.apps.strategylibrary.strategies.upgrade.battery.BatteryUpgradeStrategy;
-import com.hellohuandian.apps.strategylibrary.strategies.upgrade.battery.JieMinKe.JieMinKeBatteryUpgradeStrategy;
+import com.hellohuandian.apps.strategylibrary.strategies.upgrade.battery.BoQiang.BoQiangBatteryUpgradeStrategy;
+import com.hellohuandian.apps.strategylibrary.strategies.upgrade.battery.ChaoLiYuan.ChaoLiYuanBatteryUpgradeStrategy;
+import com.hellohuandian.apps.strategylibrary.strategies.upgrade.battery.GuanTong.GuanTongBatteryUpgradeStrategy;
 import com.hellohuandian.apps.strategylibrary.strategies.upgrade.battery.NuoWan.NuoWanBatteryUpgradeStrategy;
+import com.hellohuandian.apps.strategylibrary.strategies.upgrade.dc.ACDC_UpgradeStrategy;
+import com.hellohuandian.apps.strategylibrary.strategies.upgrade.dc.DCDC_UpgradeStrategy;
+import com.hellohuandian.apps.strategylibrary.strategies.upgrade.pdu.PduUpgradeStrategy;
+import com.orhanobut.logger.Logger;
+
+import java.util.Random;
 
 import androidx.annotation.Nullable;
 import androidx.core.util.Consumer;
@@ -68,12 +84,298 @@ public class MonitorFragment extends AppBaseFragment implements View.OnClickList
             batteryViewModel.batteryMonitorLiveData.observe(this, batteryData -> {
                 if (monitorAdapter != null)
                 {
+                    if (batteryData instanceof BatteryInfo)
+                    {
+                        checkLocked((BatteryInfo) batteryData);
+                    }
                     monitorAdapter.addElement(batteryData);
                 }
             });
         }
-        //        testBatteryUpgradeStrategy();
-        testNulWanBatteryUpgradeStrategy();
+        //                testBatteryUpgradeStrategy();
+        testNulWanBatteryUpgradeStrategy_can();
+        //                        test();
+        //        testBoQiangBatteryUpgradeStrategy();
+        //        testChaoLiYuanUpgradeStrategy();
+        //                        testCheckCode();
+        //        try
+        //        {
+        //            testJiZhan();
+        //        }
+        //        catch (Exception e)
+        //        {
+        //            e.printStackTrace();
+        //        }
+//                testpDU2();
+        //                        testACDC();
+        //                testGuanTongBatteryUpgradeStrategy();
+    }
+
+    void testpDU2()
+    {
+        new Thread(new Runnable()
+        {
+            @Override
+            public void run()
+            {
+                try
+                {
+                    Thread.sleep(10000);
+                }
+                catch (InterruptedException e)
+                {
+                    e.printStackTrace();
+                }
+
+                DCDC_UpgradeStrategy pduSaiDeUpgradeStrategy = new DCDC_UpgradeStrategy((byte) 0x01);
+                pduSaiDeUpgradeStrategy.setUpgradeFilePath("/sdcard/Download/pdu/TDK1000V75Z_HV01SV13_20200116.bin");
+
+//                for (int address = 0x02; address <= 0x09; address++)
+//                {
+//                    DCDC_UpgradeStrategy obj = new DCDC_UpgradeStrategy((byte) address);
+//                    obj.setUpgradeFilePath("/sdcard/Download/pdu/TDK1000V75Z_HV01SV09_20200114.bin");
+//                    pduSaiDeUpgradeStrategy.addNext(obj);
+//                }
+
+                pduSaiDeUpgradeStrategy.first().call(new Consumer<NodeStrategy>()
+                {
+                    @Override
+                    public void accept(NodeStrategy nodeStrategy)
+                    {
+                        DispatcherManager.getInstance().dispatch(nodeStrategy);
+                    }
+                });
+            }
+        }).start();
+    }
+
+    void testACDC()
+    {
+        new Thread(new Runnable()
+        {
+            @Override
+            public void run()
+            {
+                try
+                {
+                    Thread.sleep(10000);
+                }
+                catch (InterruptedException e)
+                {
+                    e.printStackTrace();
+                }
+
+                ACDC_UpgradeStrategy pduSaiDeUpgradeStrategy = new ACDC_UpgradeStrategy((byte) 0x51);
+                pduSaiDeUpgradeStrategy.setUpgradeFilePath("/sdcard/Download/pdu/TC096K3000M1S_HV01SV02_20191225.bin");
+
+                for (int address = 0x52; address <= 0x52; address++)
+                {
+                    ACDC_UpgradeStrategy obj = new ACDC_UpgradeStrategy((byte) address);
+                    obj.setUpgradeFilePath("/sdcard/Download/pdu/TC096K3000M1S_HV01SV02_20191225.bin");
+                    pduSaiDeUpgradeStrategy.addNext(obj);
+                }
+
+                pduSaiDeUpgradeStrategy.first().call(new Consumer<NodeStrategy>()
+                {
+                    @Override
+                    public void accept(NodeStrategy nodeStrategy)
+                    {
+                        DispatcherManager.getInstance().dispatch(nodeStrategy);
+                    }
+                });
+            }
+        }).start();
+    }
+
+    void testpDU()
+    {
+        new Thread(new Runnable()
+        {
+            @Override
+            public void run()
+            {
+                try
+                {
+                    Thread.sleep(5000);
+                }
+                catch (InterruptedException e)
+                {
+                    e.printStackTrace();
+                }
+
+                PduUpgradeStrategy pduUpgradeStrategy = new PduUpgradeStrategy();
+                pduUpgradeStrategy.setPduUpgradeFilePath("/sdcard/Download/pdu/PDU_V106B01D00_20190717.bin");
+                pduUpgradeStrategy.call(new Consumer<NodeStrategy>()
+                {
+                    @Override
+                    public void accept(NodeStrategy nodeStrategy)
+                    {
+                        DispatcherManager.getInstance().dispatch(nodeStrategy);
+                    }
+                });
+            }
+        }).start();
+    }
+
+    public class SCell
+    {
+        public int MCC;
+        public int MNC;
+        public int LAC;
+        public int CID;
+    }
+
+    private void testJiZhan() throws Exception
+    {
+        SCell cell = new SCell();
+
+        /** 调用API获取基站信息 */
+        TelephonyManager mTelNet = (TelephonyManager) getContext().getSystemService(Context.TELEPHONY_SERVICE);
+        @SuppressLint("MissingPermission") GsmCellLocation location = (GsmCellLocation) mTelNet.getCellLocation();
+        if (location == null)
+            throw new Exception("获取基站信息失败");
+        String operator = mTelNet.getNetworkOperator();
+        int mcc = Integer.parseInt(operator.substring(0, 3));
+        int mnc = Integer.parseInt(operator.substring(3));
+        int cid = location.getCid();
+        int lac = location.getLac();
+
+        /** 将获得的数据放到结构体中 */
+        cell.MCC = mcc;
+        cell.MNC = mnc;
+        cell.LAC = lac;
+        cell.CID = cid;
+        //http://www.cellid.cn/
+        System.out.println("cell.MCC:" + cell.MCC);
+        System.out.println("cell.MNC:" + cell.MNC);
+        System.out.println("cell.LAC:" + cell.LAC);
+        System.out.println("cell.CID:" + cell.CID);
+    }
+
+
+    private void testCheckCode()
+    {
+        new Thread(new Runnable()
+        {
+            @Override
+            public void run()
+            {
+                System.out.println("校验码测试开始");
+                try
+                {
+                    Thread.sleep(5000);
+                }
+                catch (InterruptedException e)
+                {
+                    e.printStackTrace();
+                }
+                Random random = new Random();
+
+                CheckCodeStrategy checkCodeStrategy;
+                int index = 0;
+                int targetIndex;
+                StringBuilder stringBuilder = new StringBuilder();
+                while (true)
+                {
+                    if (monitorAdapter != null && monitorAdapter.getItemCount() > 0)
+                    {
+                        if (index > 0 && index % monitorAdapter.getItemCount() == 0)
+                        {
+                            index = 0;
+                        }
+                        targetIndex = index;
+                        index++;
+
+                        BatteryInfo batteryInfo = (BatteryInfo) monitorAdapter.getItem(targetIndex);
+                        if (batteryInfo == null || TextUtils.isEmpty(batteryInfo.batteryIdInfo))
+                        {
+                            continue;
+                        } else
+                        {
+                            checkCodeStrategy = new CheckCodeStrategy(batteryInfo.address);
+                            stringBuilder.setLength(0);
+
+                            for (int j = 0; j < 8; j++)
+                            {
+                                switch (random.nextInt(2) % 2)
+                                {
+                                    case 0:
+                                        stringBuilder.append((char) (random.nextInt(26) + 'A'));
+                                        break;
+                                    default:
+                                        stringBuilder.append(random.nextInt(10));
+                                        break;
+                                }
+                            }
+
+                            final String id = batteryInfo.batteryIdInfo;
+                            final String code = stringBuilder.toString();
+                            checkCodeStrategy.setCheckCode(code);
+                            checkCodeStrategy.first().call(new Consumer<NodeStrategy>()
+                            {
+                                @Override
+                                public void accept(NodeStrategy nodeStrategy)
+                                {
+                                    Logger.i("电池ID:" + id + ",写入:" + code);
+                                    DispatcherManager.getInstance().dispatch(nodeStrategy);
+                                }
+                            });
+
+                            //测试执行完等待5秒
+                            try
+                            {
+                                Thread.sleep(5000);
+                            }
+                            catch (InterruptedException e)
+                            {
+                                e.printStackTrace();
+                            }
+
+                            batteryInfo = (BatteryInfo) monitorAdapter.getItem(targetIndex);
+                            if (batteryInfo == null || TextUtils.isEmpty(batteryInfo.batteryIdInfo))
+                            {
+                                continue;
+                            } else
+                            {
+                                Logger.i("电池ID:" + batteryInfo.batteryIdInfo + ",读取:" + batteryInfo.str_checkCode);
+                            }
+                        }
+                    }
+                }
+            }
+        }).start();
+    }
+
+    private void test()
+    {
+        new Thread(new Runnable()
+        {
+            @Override
+            public void run()
+            {
+                try
+                {
+                    Thread.sleep(5000);
+                }
+                catch (InterruptedException e)
+                {
+                    e.printStackTrace();
+                }
+                byte address = 0x05;
+                ChargingStrategy chargingStrategy = new ChargingStrategy((byte) (address - 0x05 + 0x15));
+                chargingStrategy.setBatterySpecification('M');
+                chargingStrategy.addPrevious(new RelayOpenStrategy((byte) (address - 0x05 + 0x15)));
+                chargingStrategy.first().call(new Consumer<NodeStrategy>()
+                {
+                    @Override
+                    public void accept(NodeStrategy nodeStrategy)
+                    {
+                        DispatcherManager.getInstance().dispatch(nodeStrategy);
+                    }
+                });
+
+            }
+        }).start();
     }
 
     @Override
@@ -96,6 +398,22 @@ public class MonitorFragment extends AppBaseFragment implements View.OnClickList
         }
     }
 
+    private boolean isConnectedNet = false;
+
+    private void checkLocked(BatteryInfo batteryInfo)
+    {
+        // TODO: 2019-10-18 判断是否电池正确放好
+        if (batteryInfo.isLockedChange() && batteryInfo.isLocked())
+        {
+            System.out.println("新锁" + batteryInfo.address);
+            if (isConnectedNet)
+            {
+                // TODO: 2019-10-25 换电-充电
+                pushRod((byte) 0x0D);
+            }
+        }
+    }
+
     private void pushRod(byte address)
     {
         if (appDialog.isShowing())
@@ -104,24 +422,25 @@ public class MonitorFragment extends AppBaseFragment implements View.OnClickList
         }
         appDialog.show(getActivity().getSupportFragmentManager(), "show");
 
-        NodeStrategy pushNodeStrategy = null;
-        PushRodStrategy pushRodStrategy = new PushRodStrategy(address);
-        pushRodStrategy.setOnPushAction(new OnPushAction()
+        ChargingStrategy chargingStrategy = new ChargingStrategy((byte) (address - 0x05 + 0x15));
+        chargingStrategy.setBatterySpecification('0');
+        chargingStrategy.setOnChargingAction(new OnChargingAction()
         {
             @Override
-            public void onPushSuccessed(byte address)
+            public void onChargingSuccessed(byte address)
             {
-                System.out.println("推杆成功");
-                appDialog.dismiss();
+                System.out.println("设置充电成功" + address);
             }
 
             @Override
-            public void onPushFailed(byte address)
+            public void onChargingFailed(byte address)
             {
-                System.out.println("推杆失败");
-                appDialog.dismiss();
+                System.out.println("设置充电失败" + address);
             }
         });
+
+        NodeStrategy pushNodeStrategy = null;
+        PushRodStrategy pushRodStrategy = new PushRodStrategy(address);
 
         switch (MachineVersionConfig.getMachineVersion())
         {
@@ -133,6 +452,17 @@ public class MonitorFragment extends AppBaseFragment implements View.OnClickList
                 pushNodeStrategy = pushRodStrategy.addPrevious(new RelayCloseStrategy((byte) (address - 0x05 + 0x15)));
                 break;
         }
+
+        pushRodStrategy.addPrevious(chargingStrategy);
+        pushRodStrategy.setOnPushAction(new OnPushAction()
+        {
+            @Override
+            public void onPushed(boolean isSuccessed)
+            {
+                System.out.println(isSuccessed ? "推杆成功" : "推杆失败");
+                appDialog.dismiss();
+            }
+        });
 
         if (pushNodeStrategy != null)
         {
@@ -159,8 +489,8 @@ public class MonitorFragment extends AppBaseFragment implements View.OnClickList
                     e.printStackTrace();
                 }
                 System.out.println("开始升级");
-                BatteryUpgradeStrategy batteryUpgradeStrategy = new JieMinKeBatteryUpgradeStrategy((byte) 0x05, "/sdcard/Download" +
-                        "/HelloBMS19S_HW0101_FW0159_CRCCF220E3D_BT00000000.bin");
+                BatteryUpgradeStrategy batteryUpgradeStrategy = new NuoWanBatteryUpgradeStrategy((byte) 0x05, "/sdcard/Download" +
+                        "/60V_V007_20191024.bin");
                 //                batteryUpgradeStrategy.setOnUpgradeProgress(new OnUpgradeProgress()
                 //                {
                 //                    @Override
@@ -206,10 +536,83 @@ public class MonitorFragment extends AppBaseFragment implements View.OnClickList
                     e.printStackTrace();
                 }
                 System.out.println("开始升级");
-                BatteryUpgradeStrategy batteryUpgradeStrategy = new NuoWanBatteryUpgradeStrategy((byte) 0x05, "/sdcard/Download" +
-                        //                        "/60V_19_V006.bin");
-                        "/48V_V018_20191023.bin");
+                BatteryUpgradeStrategy batteryUpgradeStrategy = new NuoWanBatteryUpgradeStrategy((byte) 0x07, "/sdcard/Download" +
+                        "/MDBBB_1_255_7C79849A.bin");
+                batteryUpgradeStrategy.setIdCodeAndBmsHardwareVersion("MDBBB", "1", "7C79849A");
+                batteryUpgradeStrategy.addNext(new Action485((byte) 0x07))
+                        .first()
+                        .call(new Consumer<NodeStrategy>()
+                        {
+                            @Override
+                            public void accept(NodeStrategy nodeStrategy)
+                            {
+                                DispatcherManager.getInstance().dispatch(nodeStrategy);
+                            }
+                        });
 
+            }
+        }).start();
+    }
+
+    private void testNulWanBatteryUpgradeStrategy_can()
+    {
+        // TODO: 2019-10-11 升级过程中其他控制操作必须暂停
+        new Thread(new Runnable()
+        {
+            @Override
+            public void run()
+            {
+                System.out.println("准备升级");
+                try
+                {
+                    Thread.sleep(10000);
+                }
+                catch (InterruptedException e)
+                {
+                    e.printStackTrace();
+                }
+                System.out.println("开始升级");
+                BatteryUpgradeStrategy batteryUpgradeStrategy = new NuoWanBatteryUpgradeStrategy((byte) 0x01, "/sdcard/Download" +
+                        "/MDBBB_1_255_E2915021.bin");
+                batteryUpgradeStrategy.setIdCodeAndBmsHardwareVersion("MDBBB", "1", "E2915021");
+                DispatcherManager.getInstance().dispatch(batteryUpgradeStrategy);
+            }
+        }).start();
+    }
+
+    @OnClick({R.id.tv_exitApp})
+    @Override
+    public void onClick(View v)
+    {
+        switch (v.getId())
+        {
+            case R.id.tv_exitApp:
+                getActivity().finish();
+                break;
+        }
+    }
+
+    private void testBoQiangBatteryUpgradeStrategy()
+    {
+        // TODO: 2019-10-11 升级过程中其他控制操作必须暂停
+        new Thread(new Runnable()
+        {
+            @Override
+            public void run()
+            {
+                System.out.println("准备升级");
+                try
+                {
+                    Thread.sleep(5000);
+                }
+                catch (InterruptedException e)
+                {
+                    e.printStackTrace();
+                }
+                System.out.println("开始升级");
+                BatteryUpgradeStrategy batteryUpgradeStrategy = new BoQiangBatteryUpgradeStrategy((byte) 0x05, "/sdcard/Download" +
+                        "/MBFFF_112_22_A193F5EB.bin");
+                batteryUpgradeStrategy.setIdCodeAndBmsHardwareVersion("MBFFF", "112", "A193F5EB");
                 batteryUpgradeStrategy.addNext(new Action485((byte) 0x05))
                         .first()
                         .call(new Consumer<NodeStrategy>()
@@ -225,15 +628,77 @@ public class MonitorFragment extends AppBaseFragment implements View.OnClickList
         }).start();
     }
 
-    @OnClick({R.id.tv_exitApp})
-    @Override
-    public void onClick(View v)
+
+    private void testChaoLiYuanUpgradeStrategy()
     {
-        switch (v.getId())
+        // TODO: 2019-10-11 升级过程中其他控制操作必须暂停
+        new Thread(new Runnable()
         {
-            case R.id.tv_exitApp:
-                getActivity().finish();
-                break;
-        }
+            @Override
+            public void run()
+            {
+                System.out.println("准备升级");
+                try
+                {
+                    Thread.sleep(5000);
+                }
+                catch (InterruptedException e)
+                {
+                    e.printStackTrace();
+                }
+                System.out.println("开始升级");
+                BatteryUpgradeStrategy batteryUpgradeStrategy = new ChaoLiYuanBatteryUpgradeStrategy((byte) 0x05, "/sdcard/Download" +
+                        //                        "/60V_19_V006.bin");
+                        "/NCDDD_20_160_3D855D1C.bin");
+                batteryUpgradeStrategy.setIdCodeAndBmsHardwareVersion("NCDDD", "20", "3D855D1C");
+                batteryUpgradeStrategy.addNext(new Action485((byte) 0x05))
+                        .first()
+                        .call(new Consumer<NodeStrategy>()
+                        {
+                            @Override
+                            public void accept(NodeStrategy nodeStrategy)
+                            {
+                                DispatcherManager.getInstance().dispatch(nodeStrategy);
+                            }
+                        });
+
+            }
+        }).start();
+    }
+
+    private void testGuanTongBatteryUpgradeStrategy()
+    {
+        // TODO: 2019-10-11 升级过程中其他控制操作必须暂停
+        new Thread(new Runnable()
+        {
+            @Override
+            public void run()
+            {
+                System.out.println("准备升级");
+                try
+                {
+                    Thread.sleep(5000);
+                }
+                catch (InterruptedException e)
+                {
+                    e.printStackTrace();
+                }
+                System.out.println("开始升级");
+                GuanTongBatteryUpgradeStrategy batteryUpgradeStrategy = new GuanTongBatteryUpgradeStrategy((byte) 0x05, "/sdcard/Download" +
+                        "/MFKKK_12_2_DE9B115F.bin");
+                batteryUpgradeStrategy.setIdCodeAndBmsHardwareVersion("MFKKK", "12", "DE9B115F");
+                batteryUpgradeStrategy.addNext(new Action485((byte) 0x05))
+                        .first()
+                        .call(new Consumer<NodeStrategy>()
+                        {
+                            @Override
+                            public void accept(NodeStrategy nodeStrategy)
+                            {
+                                DispatcherManager.getInstance().dispatch(nodeStrategy);
+                            }
+                        });
+
+            }
+        }).start();
     }
 }

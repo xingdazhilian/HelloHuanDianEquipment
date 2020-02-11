@@ -24,4 +24,6 @@ dependencies {
     implementation rootProject.ext.dependencies["appcompat-v7"]
     implementation project(path: ':DeviceIoController')
     implementation project(path: ':UtilLibrary')
+
+    api 'com.orhanobut:logger:2.2.0'
 }

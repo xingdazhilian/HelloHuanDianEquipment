@@ -87,11 +87,26 @@ public abstract class NodeStrategy extends BaseStrategy
 
     public abstract class NodeConsumer implements Consumer<byte[]>
     {
+        private boolean isFinishContinue;
+
+        public NodeConsumer()
+        {
+            this(true);
+        }
+
+        public NodeConsumer(boolean isFinishContinue)
+        {
+            this.isFinishContinue = isFinishContinue;
+        }
+
         @Override
         public void accept(byte[] bytes)
         {
             onAccept(bytes);
-            nextCall();
+            if (isFinishContinue)
+            {
+                nextCall();
+            }
         }
 
         public abstract void onAccept(byte[] bytes);

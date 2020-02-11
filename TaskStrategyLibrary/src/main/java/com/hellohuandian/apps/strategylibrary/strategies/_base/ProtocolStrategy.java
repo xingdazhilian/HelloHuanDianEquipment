@@ -16,7 +16,7 @@ public abstract class ProtocolStrategy extends NodeStrategy
     }
 
     @Override
-    public final void execute(DeviceIoAction deviceIoAction)
+    public void execute(DeviceIoAction deviceIoAction)
     {
         if (deviceIoAction == null)
         {

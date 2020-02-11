@@ -3,9 +3,9 @@ package com.hellohuandian.apps.strategylibrary.dispatchers.canExtension;
 import android.os.SystemClock;
 
 import com.hellohuandian.apps.controllerlibrary.DeviceIoAction;
+import com.hellohuandian.apps.utillibrary.StringFormatHelper;
 
 import java.io.IOException;
-import java.sql.SQLOutput;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -38,7 +38,7 @@ public final class CanDeviceIoActionImpl implements CanDeviceIoAction
      */
     public void parseDispatch()
     {
-        byte[] result = new byte[0];
+        byte[] result = null;
         try
         {
             result = read();
@@ -47,15 +47,15 @@ public final class CanDeviceIoActionImpl implements CanDeviceIoAction
         {
             e.printStackTrace();
         }
-
+        System.out.println("通讯：" + StringFormatHelper.getInstance().toHexString(result));
         if (result != null && result.length == LEN_16)
         {
             // TODO: 2019-09-24 pdu是扩展帧，控制板相关是标准帧
             // TODO: 2019-09-24 先区分来自pdu还是控制板的数据
-            final int frameId = (result[3] & 0xFF) << 24 | (result[2] & 0xFF) << 16 | (result[1] & 0xFF) << 8 | result[0];
+            final int frameId = (result[3] & 0xFF) << 24 | (result[2] & 0xFF) << 16 | (result[1] & 0xFF) << 8 | (result[0] & 0xFF);
             // TODO: 2019-09-24 初始化结果ID为帧ID
             int resultId = frameId;
-            //            System.out.println("结果：" + StringFormatHelper.getInstance().toHexString(result));
+
             if (frameId >= 0x01 && frameId <= 0x0D)
             {
                 //来自控制设备地址
@@ -76,13 +76,14 @@ public final class CanDeviceIoActionImpl implements CanDeviceIoAction
             }
         }
 
-        checkTimeOut(SystemClock.elapsedRealtime());
+        checkTimeOut();
     }
 
-    private void checkTimeOut(final long currentTimeMillis)
+    private void checkTimeOut()
     {
         if (!timeOutMap.isEmpty())
         {
+            final long currentTimeMillis = SystemClock.elapsedRealtime();
             for (Map.Entry<Integer, Long> entry : timeOutMap.entrySet())
             {
                 if (currentTimeMillis > entry.getValue())
@@ -91,6 +92,7 @@ public final class CanDeviceIoActionImpl implements CanDeviceIoAction
                     Consumer<byte[]> consumer = registerMap.get(resultId);
                     if (consumer != null)
                     {
+                        unRegister(resultId);
                         consumer.accept(null);
                     }
                 }

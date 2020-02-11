@@ -51,6 +51,7 @@ public class BatteryInfo extends BatteryData
     public String str_soh;
     //    public String manufacturer;
     public String str_controlPanelTemperature = "--°C";
+    public String str_checkCode;
 
     // TODO: 2019-09-26 附加的字段
     public String _battery_capacity_specification;//电池容量规格
@@ -239,7 +240,7 @@ public class BatteryInfo extends BatteryData
     public String toSimpleString()
     {
         return _BMS_manufacturer + batteryTotalVoltage + remainingCapatity + realTimeCurrent
-                + batteryTemperature + softwareVersion + doorSideLockStatus + doorBottomLockStatus;
+                + batteryTemperature + softwareVersion + doorSideLockStatus + doorBottomLockStatus + str_checkCode;
     }
 
     public boolean isLocked()
