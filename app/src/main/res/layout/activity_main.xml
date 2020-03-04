@@ -4,11 +4,11 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".modules.main.MainActivity">
+    tools:context="client.NewElectric.app10000.modules.main.MainActivity">
 
     <fragment
         android:id="@+id/fragment_MonitorFragment"
-        android:name="com.hellohuandian.apps.equipment.modules.main.tabPages.monitor.MonitorFragment"
+        android:name="client.NewElectric.app10000.modules.main.tabPages.monitor.MonitorFragment"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         ></fragment>

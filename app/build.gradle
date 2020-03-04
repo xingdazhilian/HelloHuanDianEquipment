@@ -4,7 +4,7 @@ android {
     compileSdkVersion rootProject.ext.config["compileSdkVersion"]
 
     defaultConfig {
-        applicationId "com.hellohuandian.apps.equipment"
+        applicationId "client.NewElectric.app10000"
         minSdkVersion rootProject.ext.config["minSdkVersion"]
         targetSdkVersion rootProject.ext.config["targetSdkVersion"]
         versionCode 1
